@@ -1,0 +1,17 @@
+
+import os
+
+assert "GOOGLE_APPLICATION_CREDENTIALS" in os.environ
+
+REDDIT_CLIENT_ID = os.environ["REDDIT_CLIENT_ID"]
+REDDIT_CLIENT_SECRET = os.environ["REDDIT_CLIENT_SECRET"]
+REDDIT_USER_AGENT = os.environ["REDDIT_USER_AGENT"]
+
+SUBREDDITS = os.environ["SUBREDDITS"].split(",")
+
+GCS_BUCKET_NAME = os.environ["GCS_BUCKET_NAME"]
+GCS_EXTRACT_PREFIX = "reddit-posts"
+GCS_TRANSFORM_PREFIX = "subreddit-metrics"
+
+BIGQUERY_DATASET_ID = os.environ["BIGQUERY_DATASET_ID"]
+BIGQUERY_TABLE_ID = os.environ["BIGQUERY_TABLE_ID"]

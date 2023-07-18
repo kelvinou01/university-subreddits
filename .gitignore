@@ -1,0 +1,7 @@
+
+venv/
+src/data
+__pycache__/
+test.py
+google_application_credentials.json
+src/scripts/
