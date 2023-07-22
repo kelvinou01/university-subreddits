@@ -1,13 +1,19 @@
+from __future__ import annotations
 
-
+from datetime import date as Date
+from datetime import datetime
+from datetime import timedelta
 from typing import List
-from common.models import RedditPost
-from common.reddit_client import AbstractRedditClient, RedditClient
-from common.storage_client import AbstractGoogleCloudStorageClient, GoogleCloudStorageClient
-from datetime import date as Date, datetime, timedelta
 
-from common import config, logger
-from common.utils import estimate_downvotes, get_object_key
+from common import config
+from common import logger
+from common.models import RedditPost
+from common.reddit_client import AbstractRedditClient
+from common.reddit_client import RedditClient
+from common.storage_client import AbstractGoogleCloudStorageClient
+from common.storage_client import GoogleCloudStorageClient
+from common.utils import estimate_downvotes
+from common.utils import get_object_key
 
 
 def convert_submission_to_reddit_post(submission: dict) -> RedditPost:
@@ -18,7 +24,7 @@ def convert_submission_to_reddit_post(submission: dict) -> RedditPost:
     # Reddit API doesn't send the number of downvotes, so it is estimated.
     downvotes_estimated = estimate_downvotes(
         upvotes=submission["ups"],
-        upvote_ratio=submission["upvote_ratio"]
+        upvote_ratio=submission["upvote_ratio"],
     )
     post_dt = datetime.utcfromtimestamp(submission.get("extracted_utc", 0.0))
 
@@ -67,7 +73,7 @@ def store_reddit_posts_to_gcs(
     google_storage_client.upload(
         objects=reddit_posts,
         bucket_name=config.GCS_BUCKET_NAME,
-        object_key=object_key
+        object_key=object_key,
     )
 
 
@@ -75,7 +81,9 @@ def main(date: Date) -> None:
     logger.info(f"Starting extract task for {date}")
 
     exec_datetime = datetime.utcnow()
-    logger.info(f"""Execution time (UTC): {exec_datetime.isoformat(sep=" ", timespec='seconds')}""")
+    logger.info(
+        f"""Execution time (UTC): {exec_datetime.isoformat(sep=" ", timespec='seconds')}""",
+    )
 
     logger.info("Connecting to Reddit API")
     reddit_client = RedditClient(
@@ -85,7 +93,7 @@ def main(date: Date) -> None:
     )
     google_storage_client = GoogleCloudStorageClient()
 
-    logger.info(f"Fetching posts made from reddit")
+    logger.info("Fetching posts made from reddit")
     new_posts = fetch_posts_from_reddit(
         reddit_client=reddit_client,
         date=date,
@@ -113,7 +121,7 @@ if __name__ == "__main__":
     args = vars(parser.parse_args())
 
     if args.get("date"):
-        input_dt = datetime.strptime(args.get("date"), '%d/%m/%Y',)
+        input_dt = datetime.strptime(str(args.get("date")), "%d/%m/%Y")
     else:
         input_dt = datetime.now() - timedelta(days=1)
     input_date = input_dt.date()
@@ -121,6 +129,8 @@ if __name__ == "__main__":
     today = datetime.now().date()
     more_than_a_month_ago = (today - input_date).days > 30
     if more_than_a_month_ago:
-        raise ValueError("Use extract_historical.py to extract posts made more than a month ago.")
+        raise ValueError(
+            "Use extract_historical.py to extract posts made more than a month ago.",
+        )
 
     main(date=input_date)

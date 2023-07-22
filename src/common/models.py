@@ -1,7 +1,9 @@
+from __future__ import annotations
 
-from typing import List
-from pydantic import BaseModel
 from datetime import date as Date
+from typing import List
+
+from pydantic import BaseModel
 
 
 class AbstractModel(BaseModel):

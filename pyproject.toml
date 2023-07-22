@@ -1,0 +1,28 @@
+[project]
+name = "university-subreddits"
+description = "University Subreddits"
+requires-python = ">=3.11"
+version = "0.0.1"
+dependencies = [
+    "google-cloud-storage~=2.10.0",
+    "pydantic~=2.0.2",
+]
+
+[project.optional-dependencies]
+extract = [
+    "praw~=7.7.0",
+]
+
+transform = [
+    "pandas~=2.0.3",
+    "google-cloud-language~=2.10.1",
+]
+
+load = [
+    "google-cloud-bigquery~=3.11.3",
+]
+
+[tool.black]
+line-length = 120
+target_version = ['py311']
+include = '\.pyi?$'

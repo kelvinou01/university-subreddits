@@ -1,0 +1,11 @@
+FROM --platform=$TARGETPLATFORM python:3.11.4-slim-bookworm AS build
+
+WORKDIR /app
+
+COPY pyproject.toml  /app
+RUN  pip3 install .[load]
+
+COPY ./src/load.py /app/
+COPY ./src/common/*.py /app/common/
+
+CMD [ "python3", "load.py" ]

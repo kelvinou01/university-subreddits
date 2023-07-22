@@ -1,12 +1,13 @@
+from __future__ import annotations
 
-from abc import ABC, abstractmethod
-from datetime import datetime
+from abc import ABC
+from abc import abstractmethod
 from datetime import date as Date
-
-from praw import Reddit
-from prawcore.exceptions import Forbidden
+from datetime import datetime
 
 from common import logger
+from praw import Reddit
+from prawcore.exceptions import Forbidden
 
 
 class AbstractRedditClient(ABC):
@@ -20,7 +21,6 @@ class AbstractRedditClient(ABC):
 
 
 class RedditClient(AbstractRedditClient):
-
     def __init__(
         self,
         reddit_client_id: str,
@@ -36,17 +36,21 @@ class RedditClient(AbstractRedditClient):
     def _remove_posts_not_on_date(self, post_list, date):
         """Trims the post list from the front and back"""
         for start in range(len(post_list) - 1):
-            created_datetime = datetime.utcfromtimestamp(post_list[start]["created_utc"])
+            created_datetime = datetime.utcfromtimestamp(
+                post_list[start]["created_utc"],
+            )
             should_remove_post = created_datetime.date() > date
             if not should_remove_post:
                 post_list = post_list[start:]
                 break
 
         for end in range(len(post_list) - 1, -1, -1):
-            created_datetime = datetime.utcfromtimestamp(post_list[end]["created_utc"])
+            created_datetime = datetime.utcfromtimestamp(
+                post_list[end]["created_utc"],
+            )
             should_remove_post = created_datetime.date() < date
             if not should_remove_post:
-                post_list = post_list[:end + 1]
+                post_list = post_list[: end + 1]
                 break
 
         return post_list
@@ -58,7 +62,7 @@ class RedditClient(AbstractRedditClient):
             while True:
                 post_generator = self.reddit_client.subreddit(subreddit).new(
                     limit=100,
-                    params={"after": last_post_id}
+                    params={"after": last_post_id},
                 )
                 posts = [
                     {
@@ -78,15 +82,22 @@ class RedditClient(AbstractRedditClient):
                 ]
                 posts_made_on_date += posts
 
-                last_post_created_datetime = datetime.utcfromtimestamp(posts[-1]["created_utc"])
+                last_post_created_datetime = datetime.utcfromtimestamp(
+                    posts[-1]["created_utc"],
+                )
                 should_fetch_more = last_post_created_datetime.date() >= date
                 if should_fetch_more:
                     last_post_id = f"t3_{posts[-1]['id']}"
                 else:
                     break
         except Forbidden:
-            logger.error(f"Couldn't fetch posts due to Forbidden error from subreddit: {subreddit}")
+            logger.error(
+                f"Couldn't fetch posts due to Forbidden error from subreddit: {subreddit}",
+            )
             return []
 
-        posts_made_on_date = self._remove_posts_not_on_date(posts_made_on_date, date)
+        posts_made_on_date = self._remove_posts_not_on_date(
+            posts_made_on_date,
+            date,
+        )
         return posts_made_on_date

@@ -1,39 +1,16 @@
+from __future__ import annotations
 
-from datetime import datetime, timedelta
-from datetime import date as Date
 import math
-from google.cloud import bigquery
-from google.cloud.bigquery.table import Table
+from datetime import date as Date
+from datetime import datetime
+from datetime import timedelta
+
 from common import config
 from common import logger
 from common.models import SubredditMetrics
-
 from common.storage_client import GoogleCloudStorageClient
 from common.utils import get_object_key
-
-
-def create_bigquery_table(
-    bigquery_client,
-    dataset_id,
-    table_id,
-) -> Table:
-    schema = [
-        bigquery.SchemaField('date', 'DATE'),
-        bigquery.SchemaField('subreddit', 'STRING'),
-        bigquery.SchemaField('upvotes', 'INTEGER'),
-        bigquery.SchemaField('downvotes', 'INTEGER'),
-        bigquery.SchemaField('upvote_ratio', 'FLOAT'),
-        bigquery.SchemaField('posts', 'INTEGER'),
-        bigquery.SchemaField('transformed_utc', 'TIMESTAMP'),
-        bigquery.SchemaField('sentiment_score', 'FLOAT'),
-        bigquery.SchemaField('topics', 'STRING', mode='REPEATED'),
-    ]
-
-    table_ref = bigquery_client.dataset(dataset_id).table(table_id)
-    table = bigquery.Table(table_ref, schema=schema)
-    table = bigquery_client.create_table(table)
-
-    return table
+from google.cloud import bigquery
 
 
 def convert_subreddit_metric_to_bigquery_row_dict(
@@ -54,14 +31,19 @@ def load_subreddit_metrics_into_bigquery(
     bigquery_client,
     subreddit_metrics,
     dataset_id,
-    table_id
+    table_id,
 ) -> list[dict]:
     subreddit_metrics_dicts = [
-        convert_subreddit_metric_to_bigquery_row_dict(metrics)
+        convert_subreddit_metric_to_bigquery_row_dict(
+            metrics,
+        )
         for metrics in subreddit_metrics
     ]
     table_ref = bigquery_client.dataset(dataset_id).table(table_id)
-    errors = bigquery_client.insert_rows_json(table_ref, subreddit_metrics_dicts)
+    errors = bigquery_client.insert_rows_json(
+        table_ref,
+        subreddit_metrics_dicts,
+    )
     return errors
 
 
@@ -69,7 +51,9 @@ def main(date: Date) -> None:
     logger.info(f"Starting load task for {date}")
 
     exec_datetime = datetime.utcnow()
-    logger.info(f"""Execution time (UTC): {exec_datetime.isoformat(sep=" ", timespec='seconds')}""")
+    logger.info(
+        f"""Execution time (UTC): {exec_datetime.isoformat(sep=" ", timespec='seconds')}""",
+    )
 
     bigquery_client = bigquery.Client()
     cloud_storage_client = GoogleCloudStorageClient()
@@ -107,7 +91,7 @@ if __name__ == "__main__":
     args = vars(parser.parse_args())
 
     if args.get("date"):
-        input_dt = datetime.strptime(args.get("date"), '%d/%m/%Y',)
+        input_dt = datetime.strptime(str(args.get("date")), "%d/%m/%Y")
     else:
         input_dt = datetime.now() - timedelta(days=1)
     input_date = input_dt.date()

@@ -1,7 +1,9 @@
+from __future__ import annotations
 
-from datetime import date as Date
 import json
+from datetime import date as Date
 from typing import List
+
 from common.models import AbstractModel
 
 

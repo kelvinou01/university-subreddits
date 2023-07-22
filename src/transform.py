@@ -1,13 +1,19 @@
+from __future__ import annotations
 
-from datetime import datetime, timedelta
 from datetime import date as Date
-import pandas as pd
+from datetime import datetime
+from datetime import timedelta
 from statistics import mean
 
-from common.models import RedditPost, SubredditMetrics
-from common.nlp_client import AbstractNLPClient, GoogleNLPClient
-from common.storage_client import GoogleCloudStorageClient, AbstractGoogleCloudStorageClient
-from common import config, logger
+import pandas as pd
+from common import config
+from common import logger
+from common.models import RedditPost
+from common.models import SubredditMetrics
+from common.nlp_client import AbstractNLPClient
+from common.nlp_client import GoogleNLPClient
+from common.storage_client import AbstractGoogleCloudStorageClient
+from common.storage_client import GoogleCloudStorageClient
 from common.utils import get_object_key
 
 
@@ -28,7 +34,9 @@ def compute_sentiment_score(
     google_nlp_client: AbstractNLPClient,
     reddit_posts: pd.DataFrame,
 ) -> float:
-    scores_of_each_post = google_nlp_client.compute_sentiment_scores(reddit_posts.title)
+    scores_of_each_post = google_nlp_client.compute_sentiment_scores(
+        reddit_posts.title,
+    )
     scores_of_each_post = [score for score in scores_of_each_post if score is not None]
     return mean(scores_of_each_post)
 
@@ -44,17 +52,23 @@ def calculate_subreddit_metrics(
     reddit_posts_df: pd.DataFrame,
 ) -> pd.DataFrame:
     groupby_subreddit = reddit_posts_df.groupby(["subreddit"])
-    grouped_df = groupby_subreddit[["upvotes", "downvotes_estimated"]].agg("sum",)
+    grouped_df = groupby_subreddit[
+        [
+            "upvotes",
+            "downvotes_estimated",
+        ]
+    ].agg("sum")
     subreddit_to_df = dict(tuple(groupby_subreddit))
 
     subreddit_to_sentiment_scores = {
-        subreddit[0]: compute_sentiment_score(google_nlp_client, df)
-        for subreddit, df in subreddit_to_df.items()
+        subreddit[0]: compute_sentiment_score(google_nlp_client, df) for subreddit, df in subreddit_to_df.items()
     }
     grouped_df["sentiment_score"] = subreddit_to_sentiment_scores
 
     subreddit_to_topics = {
-        subreddit[0]: compute_common_topics(df)
+        subreddit[0]: compute_common_topics(
+            df,
+        )
         for subreddit, df in subreddit_to_df.items()
     }
     grouped_df["topics"] = subreddit_to_topics
@@ -99,7 +113,7 @@ def store_metrics_list_to_gcs(
     google_storage_client.upload(
         objects=metrics_list,
         bucket_name=config.GCS_BUCKET_NAME,
-        object_key=object_key
+        object_key=object_key,
     )
 
 
@@ -107,7 +121,9 @@ def main(date: Date) -> None:
     logger.info(f"Starting transform task for {date}")
 
     exec_datetime = datetime.utcnow()
-    logger.info(f"""Execution time (UTC): {exec_datetime.isoformat(sep=" ", timespec='seconds')}""")
+    logger.info(
+        f"""Execution time (UTC): {exec_datetime.isoformat(sep=" ", timespec='seconds')}""",
+    )
 
     google_storage_client = GoogleCloudStorageClient()
     google_nlp_client = GoogleNLPClient()
@@ -125,7 +141,9 @@ def main(date: Date) -> None:
         google_nlp_client=google_nlp_client,
         reddit_posts_df=reddit_posts_df,
     )
-    logger.info("Converting metrics DataFrame to list of SubredditMetrics objects")
+    logger.info(
+        "Converting metrics DataFrame to list of SubredditMetrics objects",
+    )
     metrics_list = get_subreddit_metrics_list_from_metrics_df(
         metrics_df=metrics_df,
         date=date,
@@ -152,7 +170,7 @@ if __name__ == "__main__":
     args = vars(parser.parse_args())
 
     if args.get("date"):
-        input_dt = datetime.strptime(args.get("date"), '%d/%m/%Y',)
+        input_dt = datetime.strptime(str(args.get("date")), "%d/%m/%Y")
     else:
         input_dt = datetime.now() - timedelta(days=1)
     input_date = input_dt.date()

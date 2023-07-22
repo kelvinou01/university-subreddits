@@ -5,3 +5,6 @@ __pycache__/
 test.py
 google_application_credentials.json
 src/scripts/
+.mypy_cache
+*.tfstate*
+.terraform*
