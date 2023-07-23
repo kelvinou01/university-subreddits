@@ -41,7 +41,7 @@ resource "google_project_iam_member" "cloud_storage_admin" {
   member  = "serviceAccount:${google_service_account.etl.email}"
 }
 
-# BigQuery 
+# BigQuery
 resource "google_project_iam_member" "bigquery_data_owner" {
   project = var.project_id
   role    = "roles/bigquery.admin"

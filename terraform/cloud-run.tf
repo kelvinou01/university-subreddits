@@ -10,15 +10,15 @@ resource "google_cloud_run_v2_job" "extract" {
           var.region, var.project_id, var.docker_repo_id, var.extract_image_digest
         )
         env {
-          name = "SUBREDDITS"
+          name  = "SUBREDDITS"
           value = var.subreddits
         }
         env {
-          name = "REDDIT_CLIENT_ID"
+          name  = "REDDIT_CLIENT_ID"
           value = var.reddit_client_id
         }
         env {
-          name = "REDDIT_CLIENT_SECRET"
+          name  = "REDDIT_CLIENT_SECRET"
           value = var.reddit_client_secret
         }
       }
@@ -47,15 +47,15 @@ resource "google_cloud_run_v2_job" "transform" {
           var.region, var.project_id, var.docker_repo_id, var.transform_image_digest
         )
         env {
-          name = "SUBREDDITS"
+          name  = "SUBREDDITS"
           value = var.subreddits
         }
         env {
-          name = "REDDIT_CLIENT_ID"
+          name  = "REDDIT_CLIENT_ID"
           value = var.reddit_client_id
         }
         env {
-          name = "REDDIT_CLIENT_SECRET"
+          name  = "REDDIT_CLIENT_SECRET"
           value = var.reddit_client_secret
         }
       }
@@ -84,15 +84,15 @@ resource "google_cloud_run_v2_job" "load" {
           var.region, var.project_id, var.docker_repo_id, var.load_image_digest
         )
         env {
-          name = "SUBREDDITS"
+          name  = "SUBREDDITS"
           value = var.subreddits
         }
         env {
-          name = "REDDIT_CLIENT_ID"
+          name  = "REDDIT_CLIENT_ID"
           value = var.reddit_client_id
         }
         env {
-          name = "REDDIT_CLIENT_SECRET"
+          name  = "REDDIT_CLIENT_SECRET"
           value = var.reddit_client_secret
         }
       }

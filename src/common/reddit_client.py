@@ -16,7 +16,7 @@ class AbstractRedditClient(ABC):
     """
 
     @abstractmethod
-    def fetch_posts_made_on_date(self, subreddit: str, date: Date) -> list[dict]:
+    def fetch_submissions_made_on_date(self, subreddit: str, date: Date) -> list[dict]:
         pass
 
 
@@ -33,29 +33,35 @@ class RedditClient(AbstractRedditClient):
             user_agent=reddit_user_agent,
         )
 
-    def _remove_posts_not_on_date(self, post_list, date):
-        """Trims the post list from the front and back"""
-        for start in range(len(post_list) - 1):
+    def _remove_submissions_not_on_date(
+        self,
+        submissions: list[dict],
+        date: Date,
+    ) -> list[dict]:
+        """Trims the post list from the front and back.
+        Assumes that `submissions` is sorted in descending order of `created_utc`
+        """
+        for start in range(len(submissions)):
             created_datetime = datetime.utcfromtimestamp(
-                post_list[start]["created_utc"],
+                submissions[start]["created_utc"],
             )
             should_remove_post = created_datetime.date() > date
             if not should_remove_post:
-                post_list = post_list[start:]
+                submissions = submissions[start:]
                 break
 
-        for end in range(len(post_list) - 1, -1, -1):
+        for end in range(len(submissions) - 1, -1, -1):
             created_datetime = datetime.utcfromtimestamp(
-                post_list[end]["created_utc"],
+                submissions[end]["created_utc"],
             )
             should_remove_post = created_datetime.date() < date
             if not should_remove_post:
-                post_list = post_list[: end + 1]
+                submissions = submissions[: end + 1]
                 break
 
-        return post_list
+        return submissions
 
-    def fetch_posts_made_on_date(self, subreddit: str, date: Date) -> list[dict]:
+    def fetch_submissions_made_on_date(self, subreddit: str, date: Date) -> list[dict]:
         posts_made_on_date = []
         last_post_id = None
         try:
@@ -82,12 +88,13 @@ class RedditClient(AbstractRedditClient):
                 ]
                 posts_made_on_date += posts
 
+                last_post = posts[-1]
                 last_post_created_datetime = datetime.utcfromtimestamp(
-                    posts[-1]["created_utc"],
+                    last_post["created_utc"],
                 )
                 should_fetch_more = last_post_created_datetime.date() >= date
                 if should_fetch_more:
-                    last_post_id = f"t3_{posts[-1]['id']}"
+                    last_post_id = f"t3_{last_post['id']}"
                 else:
                     break
         except Forbidden:
@@ -96,7 +103,7 @@ class RedditClient(AbstractRedditClient):
             )
             return []
 
-        posts_made_on_date = self._remove_posts_not_on_date(
+        posts_made_on_date = self._remove_submissions_not_on_date(
             posts_made_on_date,
             date,
         )

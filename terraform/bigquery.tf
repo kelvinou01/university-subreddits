@@ -1,20 +1,20 @@
 resource "google_bigquery_dataset" "subreddit_metrics" {
-  dataset_id                  = "subreddit_metrics"
-  friendly_name               = "Subreddit Metrics"
-  description                 = "Main dataset for the University Subreddits project"
-  location                    = var.region
+  dataset_id    = "subreddit_metrics"
+  friendly_name = "Subreddit Metrics"
+  description   = "Main dataset for the University Subreddits project"
+  location      = var.region
 
   labels = {
     env = "default"
   }
 
   access {
-    role = "OWNER"
+    role          = "OWNER"
     special_group = "projectOwners"
   }
 
   access {
-    role = "OWNER"
+    role          = "OWNER"
     user_by_email = google_service_account.etl.email
   }
 }
@@ -28,7 +28,7 @@ resource "google_bigquery_table" "subreddit_metrics" {
   }
 
   clustering = ["date"]
-  schema = <<-EOF
+  schema     = <<-EOF
   [
     {
       "name": "date",
@@ -77,6 +77,6 @@ resource "google_bigquery_table" "subreddit_metrics" {
     }
 ]
 EOF
-  
+
   depends_on = [google_project_iam_member.bigquery_data_owner]
 }

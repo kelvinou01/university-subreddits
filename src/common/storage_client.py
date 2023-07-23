@@ -18,7 +18,7 @@ class AbstractGoogleCloudStorageClient(ABC):
     @abstractmethod
     def upload(
         self,
-        object_list: list[AbstractModel],
+        objects: list[AbstractModel],
         bucket_name: str,
         object_key: str,
     ) -> None:

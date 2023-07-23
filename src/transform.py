@@ -41,6 +41,7 @@ def compute_sentiment_score(
     return mean(scores_of_each_post)
 
 
+# TODO
 def compute_common_topics(
     reddit_posts: pd.DataFrame,
 ) -> list[str]:

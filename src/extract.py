@@ -10,7 +10,6 @@ from common import logger
 from common.models import RedditPost
 from common.reddit_client import AbstractRedditClient
 from common.reddit_client import RedditClient
-from common.storage_client import AbstractGoogleCloudStorageClient
 from common.storage_client import GoogleCloudStorageClient
 from common.utils import estimate_downvotes
 from common.utils import get_object_key
@@ -26,7 +25,7 @@ def convert_submission_to_reddit_post(submission: dict) -> RedditPost:
         upvotes=submission["ups"],
         upvote_ratio=submission["upvote_ratio"],
     )
-    post_dt = datetime.utcfromtimestamp(submission.get("extracted_utc", 0.0))
+    post_dt = datetime.utcfromtimestamp(submission.get("created_utc", 0.0))
 
     reddit_post = RedditPost(
         post_id=submission["id"],
@@ -52,29 +51,13 @@ def fetch_posts_from_reddit(
 ) -> List[RedditPost]:
     new_submissions = []
     for subreddit in subreddits:
-        submissions = reddit_client.fetch_posts_made_on_date(
+        submissions = reddit_client.fetch_submissions_made_on_date(
             subreddit=subreddit,
             date=date,
         )
         new_submissions.extend(submissions)
 
     return [convert_submission_to_reddit_post(submission) for submission in new_submissions]
-
-
-def store_reddit_posts_to_gcs(
-    google_storage_client: AbstractGoogleCloudStorageClient,
-    reddit_posts: list[RedditPost],
-    date: Date,
-) -> None:
-    object_key = get_object_key(
-        config.GCS_EXTRACT_PREFIX,
-        date,
-    )
-    google_storage_client.upload(
-        objects=reddit_posts,
-        bucket_name=config.GCS_BUCKET_NAME,
-        object_key=object_key,
-    )
 
 
 def main(date: Date) -> None:
@@ -100,10 +83,14 @@ def main(date: Date) -> None:
         subreddits=config.SUBREDDITS,
     )
     logger.info("Storing posts to google cloud storage")
-    store_reddit_posts_to_gcs(
-        google_storage_client=google_storage_client,
-        reddit_posts=new_posts,
-        date=date,
+    object_key = get_object_key(
+        config.GCS_EXTRACT_PREFIX,
+        date,
+    )
+    google_storage_client.upload(
+        objects=new_posts,
+        bucket_name=config.GCS_BUCKET_NAME,
+        object_key=object_key,
     )
 
     logger.info("Extract task done")

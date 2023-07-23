@@ -25,7 +25,7 @@ class GoogleNLPClient(AbstractNLPClient):
             response = self.language_client.analyze_sentiment(
                 request={"document": document},
             )
-        except InvalidArgument:
+        except InvalidArgument:  # Text is in a different language
             return None
         sentiment = response.document_sentiment
         return sentiment.score
