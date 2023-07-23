@@ -1,12 +1,13 @@
-import pytest
+from __future__ import annotations
+
 from datetime import date
-from common.utils import (
-    serialize_objects_to_single_json,
-    deserialize_single_json_to_objects,
-    get_date_parts_from_date,
-    get_object_key,
-    estimate_downvotes,
-)
+
+import pytest
+from common.utils import deserialize_single_json_to_objects
+from common.utils import estimate_downvotes
+from common.utils import get_date_parts_from_date
+from common.utils import get_object_key
+from common.utils import serialize_objects_to_single_json
 
 
 @pytest.mark.parametrize(
@@ -14,11 +15,11 @@ from common.utils import (
     [
         (
             [],
-            "[]"
+            "[]",
         ),
         (
             [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}],
-            '[{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]'
+            '[{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]',
         ),
     ],
 )
@@ -31,14 +32,14 @@ def test_serialize_objects_to_single_json(objects, expected_json):
     "json_string, model_type, expected_objects",
     [
         (
-            '[]',
+            "[]",
             dict,
-            []
+            [],
         ),
         (
             '[{"name": "Alice", "age": "30"}, {"name": "Bob", "age": "25"}]',
             dict,
-            [{"name": "Alice", "age": "30"}, {"name": "Bob", "age": "25"}]
+            [{"name": "Alice", "age": "30"}, {"name": "Bob", "age": "25"}],
         ),
     ],
 )

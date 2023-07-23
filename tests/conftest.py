@@ -1,11 +1,12 @@
+from __future__ import annotations
 
-
+from collections import defaultdict
 from datetime import datetime
+
 import pandas as pd
 import pytest
-
-from common.models import RedditPost, SubredditMetrics
-from collections import defaultdict
+from common.models import RedditPost
+from common.models import SubredditMetrics
 
 
 def get_date(date_str):
@@ -68,6 +69,7 @@ def id_to_submission():
             "extracted_utc": 1690125895.5,
         },
     }
+
 
 @pytest.fixture
 def id_to_reddit_post():
@@ -150,7 +152,7 @@ def submissions(id_to_submission):
     subs = sorted(
         id_to_submission.values(),
         key=lambda sub: sub["created_utc"],
-        reverse=True
+        reverse=True,
     )
     return subs
 
@@ -169,7 +171,7 @@ def reddit_posts(id_to_reddit_post):
     return sorted(
         id_to_reddit_post.values(),
         key=lambda post: post.created_utc,
-        reverse=True
+        reverse=True,
     )
 
 
@@ -260,7 +262,7 @@ def subreddit_metrics_list():
 
 
 @pytest.fixture
-def subreddit_metrics_bigquery_dicts():
+def subreddit_metrics_bigquery_rows():
     return [
         {
             "date": "2020-10-03",
@@ -272,7 +274,8 @@ def subreddit_metrics_bigquery_dicts():
             "transformed_utc": 1690115891.5,
             "sentiment_score": 0.7,
             "topics": ["cute", "cats"],
-        }, {
+        },
+        {
             "date": "2020-10-04",
             "subreddit": "cats",
             "upvotes": 6,
@@ -282,7 +285,8 @@ def subreddit_metrics_bigquery_dicts():
             "transformed_utc": 1690119891.5,
             "sentiment_score": 0.65,
             "topics": ["cute", "fluffy"],
-        }, {
+        },
+        {
             "date": "2020-10-05",
             "subreddit": "cats",
             "upvotes": 0,
@@ -292,7 +296,8 @@ def subreddit_metrics_bigquery_dicts():
             "transformed_utc": 1690125896.4,
             "sentiment_score": None,
             "topics": [],
-        }, {
+        },
+        {
             "date": "2020-10-03",
             "subreddit": "dogs",
             "upvotes": 0,
@@ -302,7 +307,8 @@ def subreddit_metrics_bigquery_dicts():
             "transformed_utc": 1690115891.5,
             "sentiment_score": None,
             "topics": [],
-        }, {
+        },
+        {
             "date": "2020-10-04",
             "subreddit": "dogs",
             "upvotes": 0,
@@ -312,7 +318,8 @@ def subreddit_metrics_bigquery_dicts():
             "transformed_utc": 1690119891.5,
             "sentiment_score": None,
             "topics": [],
-        }, {
+        },
+        {
             "date": "2020-10-05",
             "subreddit": "dogs",
             "upvotes": 148,
@@ -361,4 +368,3 @@ def text_to_sentiment_score():
         "good boy": 0.75,
         "": None,
     }
-

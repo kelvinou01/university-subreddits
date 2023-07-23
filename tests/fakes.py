@@ -1,18 +1,18 @@
+from __future__ import annotations
 
+from collections import defaultdict
 from datetime import date as Date
 from datetime import datetime
 from typing import Union
-from common.models import AbstractModel
+
 from common.bigquery_client import AbstractBigQueryClient
+from common.models import AbstractModel
 from common.nlp_client import AbstractNLPClient
 from common.reddit_client import AbstractRedditClient
 from common.storage_client import AbstractGoogleCloudStorageClient
 
-from collections import defaultdict
-
 
 class FakeBigQueryClient(AbstractBigQueryClient):
-
     def __init__(self):
         self.dataset_to_table = defaultdict(lambda: defaultdict(list))
 
@@ -20,7 +20,7 @@ class FakeBigQueryClient(AbstractBigQueryClient):
         self,
         dataset_id: int,
         table_id: int,
-        row_dicts: list[dict]
+        row_dicts: list[dict],
     ) -> None:
         self.dataset_to_table[dataset_id][table_id] += row_dicts
 

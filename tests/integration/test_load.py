@@ -1,13 +1,14 @@
-
+from __future__ import annotations
 
 from common import config
 from common.models import SubredditMetrics
 from common.utils import get_object_key
-from fakes import FakeBigQueryClient, FakeCloudStorageClient
+from fakes import FakeBigQueryClient
+from fakes import FakeCloudStorageClient
 from load import load_subreddit_metrics_into_bigquery
 
 
-def test_load(date, subreddit_metrics_list, subreddit_metrics_bigquery_dicts):
+def test_load(date, subreddit_metrics_list, subreddit_metrics_bigquery_rows):
     fake_bigquery_client = FakeBigQueryClient()
     fake_storage_client = FakeCloudStorageClient()
 
@@ -36,4 +37,4 @@ def test_load(date, subreddit_metrics_list, subreddit_metrics_bigquery_dicts):
     assert num_tables == 1
 
     table_contents = dataset_tables[config.BIGQUERY_TABLE_ID]
-    assert table_contents == subreddit_metrics_bigquery_dicts
+    assert table_contents == subreddit_metrics_bigquery_rows

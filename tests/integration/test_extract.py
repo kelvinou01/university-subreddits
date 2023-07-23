@@ -1,8 +1,10 @@
+from __future__ import annotations
 
 from common import config
 from common.utils import get_object_key
 from extract import fetch_posts_from_reddit
-from fakes import FakeCloudStorageClient, FakeRedditClient
+from fakes import FakeCloudStorageClient
+from fakes import FakeRedditClient
 
 
 def test_extract(date, subreddits, date_to_reddit_posts, date_to_submissions):

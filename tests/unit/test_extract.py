@@ -1,8 +1,10 @@
+from __future__ import annotations
 
 from itertools import product
 
 from common.reddit_client import RedditClient
-from extract import convert_submission_to_reddit_post, fetch_posts_from_reddit
+from extract import convert_submission_to_reddit_post
+from extract import fetch_posts_from_reddit
 from fakes import FakeRedditClient
 
 
@@ -15,7 +17,7 @@ def test_remove_posts_not_on_date(date_to_submissions):
     for date, submissions in date_to_submissions.items():
         filtered_submissions = reddit_client._remove_submissions_not_on_date(
             submissions=submissions,
-            date=date
+            date=date,
         )
         assert filtered_submissions == submissions
 
@@ -31,10 +33,7 @@ def test_fetch_posts_from_reddit(submissions, date_to_reddit_posts, subreddit_to
     dates = date_to_reddit_posts.keys()
     subreddits = subreddit_to_posts.keys()
     for date, subreddit in product(dates, subreddits):
-        correct_reddit_posts = [
-            post for post in date_to_reddit_posts[date]
-            if post in subreddit_to_posts[subreddit]
-        ]
+        correct_reddit_posts = [post for post in date_to_reddit_posts[date] if post in subreddit_to_posts[subreddit]]
         fetched_reddit_posts = fetch_posts_from_reddit(
             reddit_client=fake_reddit_client,
             date=date,

@@ -1,10 +1,12 @@
+from __future__ import annotations
 
 import math
 from datetime import date as Date
 from itertools import product
 
-from load import parse_subreddit_metrics_to_bigquery_row_dict, load_subreddit_metrics_into_bigquery
 from fakes import FakeBigQueryClient
+from load import load_subreddit_metrics_into_bigquery
+from load import parse_subreddit_metrics_to_bigquery_row_dict
 
 
 def test_parse_subreddit_metric_to_bigquery_row_dict(subreddit_metrics_list):
@@ -18,10 +20,10 @@ def test_parse_subreddit_metric_to_bigquery_row_dict(subreddit_metrics_list):
 
 def test_load_subreddit_metrics_into_bigquery(
     subreddit_metrics_list,
-    subreddit_metrics_bigquery_dicts,
+    subreddit_metrics_bigquery_rows,
     dataset_ids,
-    table_ids
-    ):
+    table_ids,
+):
     fake_bigquery_client = FakeBigQueryClient()
 
     for dataset_id, table_id in product(dataset_ids, table_ids):
@@ -32,4 +34,4 @@ def test_load_subreddit_metrics_into_bigquery(
             table_id=table_id,
         )
         stored_data = fake_bigquery_client.dataset_to_table[dataset_id][table_id]
-        assert stored_data == subreddit_metrics_bigquery_dicts
+        assert stored_data == subreddit_metrics_bigquery_rows
