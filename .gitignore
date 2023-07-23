@@ -8,3 +8,5 @@ src/scripts/
 .mypy_cache
 *.tfstate*
 .terraform*
+.vscode
+.pytest_cache

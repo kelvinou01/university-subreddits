@@ -9,6 +9,11 @@ from pydantic import BaseModel
 class AbstractModel(BaseModel):
     date: Date
 
+    def __hash__(self):
+        post_dict = self.__dict__
+        post_str = str(sorted(post_dict.items()))
+        return hash(post_str)
+
 
 class RedditPost(AbstractModel):
     post_id: str

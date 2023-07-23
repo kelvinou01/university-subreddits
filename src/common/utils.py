@@ -48,7 +48,9 @@ def estimate_downvotes(upvotes: int, upvote_ratio: float) -> int:
     """
     Estimates the number of downvotes based on the number of upvotes and the upvote ratio
     """
-    if upvote_ratio == 0.0:
+    if upvote_ratio < 0:
+        raise ValueError("upvote_ratio cannot be negative")
+    elif upvote_ratio == 0.0:
         estimated_downvotes = 0.0
     else:
         # rearranged: upvote_ratio = upvotes / (upvotes + downvotes)

@@ -8,12 +8,15 @@ endef
 
 
 pre-commit:
-	# pre-commit run --all-files
+	pre-commit run --all-files
 
 auth:
 	gcloud auth login
 	gcloud config set project university-subreddits
 	gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://asia-southeast1-docker.pkg.dev
+
+test: pre-commit
+	cd tests && export REDDIT_CLIENT_ID="" REDDIT_CLIENT_SECRET="" SUBREDDITS="" && python3 -m pytest
 
 first-time-setup:
 	gcloud artifacts repositories create etl-images --location=asia-southeast1 --repository-format=docker
