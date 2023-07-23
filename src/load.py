@@ -7,16 +7,17 @@ from datetime import timedelta
 
 from common import config
 from common import logger
+from common.bigquery_client import BigQueryClient
+from common.bigquery_client import BigQueryInsertError
 from common.models import SubredditMetrics
 from common.storage_client import GoogleCloudStorageClient
 from common.utils import get_object_key
-from google.cloud import bigquery
 
 
-def convert_subreddit_metric_to_bigquery_row_dict(
-    subreddit_metric,
+def parse_subreddit_metrics_to_bigquery_row_dict(
+    subreddit_metrics: SubredditMetrics,
 ) -> dict:
-    row_dict = dict(subreddit_metric)
+    row_dict = dict(subreddit_metrics)
     row_dict["date"] = str(row_dict["date"])
 
     for col, value in row_dict.items():
@@ -28,23 +29,22 @@ def convert_subreddit_metric_to_bigquery_row_dict(
 
 
 def load_subreddit_metrics_into_bigquery(
-    bigquery_client,
-    subreddit_metrics,
-    dataset_id,
-    table_id,
-) -> list[dict]:
+    bigquery_client: BigQueryClient,
+    subreddit_metrics_list: list[SubredditMetrics],
+    dataset_id: int,
+    table_id: int,
+) -> None:
     subreddit_metrics_dicts = [
-        convert_subreddit_metric_to_bigquery_row_dict(
+        parse_subreddit_metrics_to_bigquery_row_dict(
             metrics,
         )
-        for metrics in subreddit_metrics
+        for metrics in subreddit_metrics_list
     ]
-    table_ref = bigquery_client.dataset(dataset_id).table(table_id)
-    errors = bigquery_client.insert_rows_json(
-        table_ref,
-        subreddit_metrics_dicts,
+    bigquery_client.insert_rows(
+        dataset_id=dataset_id,
+        table_id=table_id,
+        row_dicts=subreddit_metrics_dicts,
     )
-    return errors
 
 
 def main(date: Date) -> None:
@@ -55,7 +55,7 @@ def main(date: Date) -> None:
         f"""Execution time (UTC): {exec_datetime.isoformat(sep=" ", timespec='seconds')}""",
     )
 
-    bigquery_client = bigquery.Client()
+    bigquery_client = BigQueryClient()
     cloud_storage_client = GoogleCloudStorageClient()
 
     logger.info("Fetching metrics from google cloud storage")
@@ -67,16 +67,16 @@ def main(date: Date) -> None:
     )
 
     logger.info("Loading metrics to BigQuery")
-    errors = load_subreddit_metrics_into_bigquery(
-        bigquery_client=bigquery_client,
-        subreddit_metrics=subreddit_metrics,
-        dataset_id=config.BIGQUERY_DATASET_ID,
-        table_id=config.BIGQUERY_TABLE_ID,
-    )
-    if len(errors) > 0:
-        logger.critical(f"Load task encountered error(s): {errors}")
-    else:
+    try:
+        load_subreddit_metrics_into_bigquery(
+            bigquery_client=bigquery_client,
+            subreddit_metrics_list=subreddit_metrics,
+            dataset_id=config.BIGQUERY_DATASET_ID,
+            table_id=config.BIGQUERY_TABLE_ID,
+        )
         logger.info("Load task done")
+    except BigQueryInsertError as e:
+        logger.critical(f"Load task encountered error(s): {e}")
 
 
 if __name__ == "__main__":
