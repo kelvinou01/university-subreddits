@@ -3,8 +3,9 @@ from __future__ import annotations
 import logging
 
 
-if logging.getLogger().hasHandlers():
-    logging.getLogger().setLevel(logging.INFO)
-else:
-    logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+handler = logging.StreamHandler()
+handler.setLevel(logging.INFO)
+logger.addHandler(handler)

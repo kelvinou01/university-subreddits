@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import date as Date
 from datetime import datetime
 from datetime import timedelta
+import logging
 from typing import List
 
 from common import config
@@ -61,7 +62,7 @@ def fetch_posts_from_reddit(
 
 
 def main(date: Date) -> None:
-    logger.info(f"Starting extract task for {date}")
+    logger.info("Starting extract task")
 
     exec_datetime = datetime.utcnow()
     logger.info(
@@ -120,4 +121,7 @@ if __name__ == "__main__":
             "Use extract_historical.py to extract posts made more than a month ago.",
         )
 
+    formatter = logging.Formatter(f"%(asctime)s - extract({input_date}) - %(levelname)s — %(message)s")
+    for handler in logger.handlers:
+        handler.setFormatter(formatter)
     main(date=input_date)

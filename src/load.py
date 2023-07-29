@@ -1,4 +1,5 @@
 from __future__ import annotations
+import logging
 
 import math
 from datetime import date as Date
@@ -48,7 +49,7 @@ def load_subreddit_metrics_into_bigquery(
 
 
 def main(date: Date) -> None:
-    logger.info(f"Starting load task for {date}")
+    logger.info("Starting load task")
 
     exec_datetime = datetime.utcnow()
     logger.info(
@@ -96,4 +97,7 @@ if __name__ == "__main__":
         input_dt = datetime.now() - timedelta(days=1)
     input_date = input_dt.date()
 
+    formatter = logging.Formatter(f"%(asctime)s - load({input_date}) - %(levelname)s — %(message)s")
+    for handler in logger.handlers:
+        handler.setFormatter(formatter)
     main(date=input_date)

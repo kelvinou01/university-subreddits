@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import date as Date
 from datetime import datetime
 from datetime import timedelta
+import logging
 from statistics import mean
 
 import pandas as pd
@@ -119,7 +120,7 @@ def store_metrics_list_to_gcs(
 
 
 def main(date: Date) -> None:
-    logger.info(f"Starting transform task for {date}")
+    logger.info("Starting transform task")
 
     exec_datetime = datetime.utcnow()
     logger.info(
@@ -176,4 +177,7 @@ if __name__ == "__main__":
         input_dt = datetime.now() - timedelta(days=1)
     input_date = input_dt.date()
 
+    formatter = logging.Formatter(f"%(asctime)s - transform({input_date}) - %(levelname)s — %(message)s")
+    for handler in logger.handlers:
+        handler.setFormatter(formatter)
     main(date=input_date)
