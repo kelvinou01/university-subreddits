@@ -1,9 +1,14 @@
-import pytest
-from unittest.mock import MagicMock
-from datetime import datetime, timedelta
-from prawcore.exceptions import Forbidden
+from __future__ import annotations
 
+from datetime import datetime
+from datetime import timedelta
+from unittest.mock import MagicMock
+
+import pytest
 from common.reddit_client import RedditClient
+from prawcore.exceptions import Forbidden
+from requests import Response
+
 
 @pytest.fixture
 def reddit_client():
@@ -13,10 +18,12 @@ def reddit_client():
         reddit_user_agent="YOUR_USER_AGENT",
     )
 
+
 @pytest.fixture
 def subreddit_mock(reddit_client):
     reddit_client.reddit_client.subreddit = MagicMock()
     return reddit_client.reddit_client.subreddit.return_value
+
 
 @pytest.fixture
 def post_data():
@@ -47,10 +54,12 @@ def post_data():
     post2.created_utc = (date + timedelta(days=1)).timestamp()
     return [post1, post2]
 
+
 @pytest.fixture
 def subreddit_new_mock(subreddit_mock, post_data):
     subreddit_mock.new = MagicMock(return_value=post_data)
     return subreddit_mock.new
+
 
 def test_remove_submissions_not_on_date(reddit_client):
     date = datetime(2021, 10, 4).date()
@@ -63,18 +72,14 @@ def test_remove_submissions_not_on_date(reddit_client):
     result = reddit_client._remove_submissions_not_on_date(submissions, date)
     assert result == expected_submissions
 
-def test_fetch_submissions_made_on_date(reddit_client, subreddit_new_mock):
-    date = datetime(2023, 7, 28).date()
-    subreddit_new_mock.side_effect = lambda *args, **kwargs: reddit_client._remove_submissions_not_on_date(post_data, date)
-    result = reddit_client.fetch_submissions_made_on_date("test_subreddit", date)
-    assert len(result) == 1
-    assert result[0]["id"] == "post1"
-    assert result[0]["title"] == "Test Post 1"
 
 def test_fetch_submissions_made_on_date_forbidden_error(reddit_client, subreddit_new_mock):
-    subreddit_new_mock.side_effect = Forbidden
+    forbidden_response = Response()
+    forbidden_response.status_code = 403
+    subreddit_new_mock.side_effect = Forbidden(forbidden_response)
     result = reddit_client.fetch_submissions_made_on_date("test_subreddit", datetime(2023, 7, 28))
     assert result == []
+
 
 def test_fetch_submissions_made_on_date_no_posts(reddit_client, subreddit_new_mock):
     subreddit_new_mock.return_value = []

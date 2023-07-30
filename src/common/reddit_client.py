@@ -41,6 +41,9 @@ class RedditClient(AbstractRedditClient):
         """Trims the post list from the front and back.
         Assumes that `submissions` is sorted in descending order of `created_utc`
         """
+        if len(submissions) == 0:
+            return []
+
         latest_submission_date = datetime.utcfromtimestamp(submissions[0]["created_utc"]).date()
         oldest_submission_date = datetime.utcfromtimestamp(submissions[-1]["created_utc"]).date()
         no_submissions_made_on_date = (date > latest_submission_date) or (oldest_submission_date > date)
@@ -92,6 +95,8 @@ class RedditClient(AbstractRedditClient):
                     }
                     for post in post_generator
                 ]
+                if len(posts) == 0:
+                    break
                 posts_made_on_date += posts
 
                 last_post = posts[-1]
