@@ -149,12 +149,28 @@ def date(request):
 
 @pytest.fixture
 def submissions(id_to_submission):
-    subs = sorted(
+    return sorted(
         id_to_submission.values(),
-        key=lambda sub: sub["created_utc"],
+        key=lambda submission: submission["created_utc"],
         reverse=True,
     )
-    return subs
+
+
+@pytest.fixture(params=[0, 1, 3])
+def submissions_and_reddit_posts(request, submissions, reddit_posts):
+    num_posts = request.param
+
+    submissions = sorted(
+        submissions[:num_posts],
+        key=lambda submission: submission["created_utc"],
+        reverse=True,
+    )
+    posts = sorted(
+        reddit_posts[:num_posts],
+        key=lambda post: post.created_utc,
+        reverse=True,
+    )
+    return submissions, posts
 
 
 @pytest.fixture
@@ -337,6 +353,11 @@ def subreddit_metrics_bigquery_rows():
 def reddit_posts_df(reddit_posts):
     post_dicts = (post.__dict__ for post in reddit_posts)
     return pd.DataFrame.from_records(post_dicts)
+
+
+@pytest.fixture
+def project_ids():
+    return ["proj"]
 
 
 @pytest.fixture

@@ -7,15 +7,11 @@ resource "google_cloud_scheduler_job" "extract_scheduler" {
   time_zone = "Asia/Singapore"
 
   http_target {
-    http_method = "POST"
-    uri         = "https://${google_cloud_run_v2_job.extract.location}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${var.project_id}/jobs/${google_cloud_run_v2_job.extract.name}:run"
-
-    oauth_token {
-      service_account_email = google_service_account.etl.email
-    }
+    http_method = "GET"
+    uri         = google_cloud_run_v2_service.extract.uri
   }
 
   depends_on = [
-    resource.google_cloud_run_v2_job.extract,
+    resource.google_cloud_run_v2_service.extract,
   ]
 }

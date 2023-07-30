@@ -8,4 +8,6 @@ RUN  pip3 install .[transform]
 COPY ./src/transform.py /app/
 COPY ./src/common/*.py /app/common/
 
-CMD [ "python3", "transform.py" ]
+EXPOSE 80
+
+CMD ["python3", "-m", "uvicorn", "transform:app", "--host", "0.0.0.0", "--port", "80"]

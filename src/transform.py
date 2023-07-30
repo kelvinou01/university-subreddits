@@ -15,8 +15,10 @@ from common.nlp_client import AbstractNLPClient
 from common.nlp_client import GoogleNLPClient
 from common.storage_client import AbstractBlobStorageClient
 from common.storage_client import GoogleCloudStorageClient
+from common.utils import get_date
 from common.utils import get_object_key
 from fastapi import FastAPI
+from fastapi import Request
 
 
 def fetch_reddit_posts_dataframe_from_cloud(
@@ -109,19 +111,16 @@ def store_metrics_list_to_gcs(
     metrics_list: list[SubredditMetrics],
     date: Date,
 ) -> None:
-    object_key = get_object_key(
-        config.GCS_TRANSFORM_PREFIX,
-        date,
-    )
+    object_key = get_object_key(date)
     storage_client.upload(
         objects=metrics_list,
-        bucket_name=config.GCS_BUCKET_NAME,
+        bucket_name=config.GCS_TRANSFORMED_BUCKET_NAME,
         object_key=object_key,
     )
 
 
-def main(date: Date) -> None:
-    logger.info("Starting transform task")
+def transform(date: Date) -> None:
+    logger.info(f"Starting transform task for {date}")
 
     exec_datetime = datetime.utcnow()
     logger.info(
@@ -129,13 +128,12 @@ def main(date: Date) -> None:
     )
 
     google_storage_client = GoogleCloudStorageClient()
-    google_nlp_client = GoogleNLPClient()
-    object_key = get_object_key(config.GCS_EXTRACT_PREFIX, date)
+    object_key = get_object_key(date)
 
     logger.info("Fetching reddit posts from Google Cloud Storage")
     reddit_posts_df = fetch_reddit_posts_dataframe_from_cloud(
         storage_client=google_storage_client,
-        bucket_name=config.GCS_BUCKET_NAME,
+        bucket_name=config.GCS_RAW_BUCKET_NAME,
         object_key=object_key,
     )
 
@@ -161,26 +159,12 @@ def main(date: Date) -> None:
     logger.info("Transform task done")
 
 
-if __name__ == "__main__":
-    import argparse
+app = FastAPI()
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-d",
-        "--date",
-        help="Date to transform posts from (DD/MM/YYYY)",
-    )
-    args = vars(parser.parse_args())
 
-    if args.get("date"):
-        input_dt = datetime.strptime(str(args.get("date")), "%d/%m/%Y")
-    elif config.DATE_TO_PROCESS is not None:
-        input_dt = datetime.strptime(config.DATE_TO_PROCESS, "%d/%m/%Y")
-    else:
-        input_dt = datetime.now() - timedelta(days=1)
-    input_date = input_dt.date()
-
-    formatter = logging.Formatter(f"%(asctime)s - transform({input_date}) - %(levelname)s — %(message)s")
-    for handler in logger.handlers:
-        handler.setFormatter(formatter)
-    main(date=input_date)
+@app.post("/")
+async def handle_event(request: Request):
+    event = await request.json()
+    object_name = event["name"]
+    date_to_transform = get_date(object_name)
+    transform(date=date_to_transform)

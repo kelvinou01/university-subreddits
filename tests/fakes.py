@@ -9,20 +9,22 @@ from common.bigquery_client import AbstractBigQueryClient
 from common.models import AbstractModel
 from common.nlp_client import AbstractNLPClient
 from common.reddit_client import AbstractRedditClient
-from common.storage_client import AbstractGoogleCloudStorageClient
+from common.storage_client import AbstractBlobStorageClient
 
 
 class FakeBigQueryClient(AbstractBigQueryClient):
     def __init__(self):
-        self.dataset_to_table = defaultdict(lambda: defaultdict(list))
+        self.data = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
 
     def insert_rows(
         self,
+        project_id: int,
         dataset_id: int,
         table_id: int,
         row_dicts: list[dict],
+        enforce_unique_on: list[str],
     ) -> None:
-        self.dataset_to_table[dataset_id][table_id] += row_dicts
+        self.data[project_id][dataset_id][table_id] += row_dicts
 
 
 class FakeNLPClient(AbstractNLPClient):
@@ -46,7 +48,7 @@ class FakeRedditClient(AbstractRedditClient):
         return filtered_submissions
 
 
-class FakeCloudStorageClient(AbstractGoogleCloudStorageClient):
+class FakeCloudStorageClient(AbstractBlobStorageClient):
     def __init__(self):
         self.buckets = defaultdict(dict)
 

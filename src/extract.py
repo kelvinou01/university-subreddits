@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 from datetime import date as Date
 from datetime import datetime
 from datetime import timedelta
@@ -14,6 +13,8 @@ from common.reddit_client import RedditClient
 from common.storage_client import GoogleCloudStorageClient
 from common.utils import estimate_downvotes
 from common.utils import get_object_key
+from fastapi import FastAPI
+from fastapi import HTTPException
 
 
 def convert_submission_to_reddit_post(submission: dict) -> RedditPost:
@@ -84,46 +85,41 @@ def main(date: Date) -> None:
         subreddits=config.SUBREDDITS,
     )
     logger.info("Storing posts to google cloud storage")
-    object_key = get_object_key(
-        config.GCS_EXTRACT_PREFIX,
-        date,
-    )
+    object_key = get_object_key(date)
     google_storage_client.upload(
         objects=new_posts,
-        bucket_name=config.GCS_BUCKET_NAME,
+        bucket_name=config.GCS_RAW_BUCKET_NAME,
         object_key=object_key,
     )
 
     logger.info("Extract task done")
 
 
-if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-d",
-        "--date",
-        help="Date to extract posts from (DD/MM/YYYY)",
-    )
-    args = vars(parser.parse_args())
-
-    if args.get("date"):
-        input_dt = datetime.strptime(str(args.get("date")), "%d/%m/%Y")
-    elif config.DATE_TO_PROCESS is not None:
-        input_dt = datetime.strptime(config.DATE_TO_PROCESS, "%d/%m/%Y")
-    else:
-        input_dt = datetime.now() - timedelta(days=1)
-    input_date = input_dt.date()
+def parse_and_check_date(input_date: str) -> Date:
+    date = datetime.strptime(input_date, "%d/%m/%Y").date()
 
     today = datetime.now().date()
-    more_than_a_month_ago = (today - input_date).days > 30
+    more_than_a_month_ago = (today - date).days > 30
     if more_than_a_month_ago:
         raise ValueError(
-            "Use extract_historical.py to extract posts made more than a month ago.",
+            "Use extract_backfill.py to extract posts made more than a month ago.",
         )
 
-    formatter = logging.Formatter(f"%(asctime)s - extract({input_date}) - %(levelname)s — %(message)s")
-    for handler in logger.handlers:
-        handler.setFormatter(formatter)
-    main(date=input_date)
+    return date
+
+
+app = FastAPI()
+
+
+@app.get("/")
+def handle_event(date: str = None):
+    if date:
+        try:
+            date_to_extract = parse_and_check_date(date)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+    else:
+        date_to_extract = datetime.today() - timedelta(days=1)
+        date_to_extract = date_to_extract.date()
+
+    extract(date=date_to_extract)

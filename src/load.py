@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-import logging
 import math
 from datetime import date as Date
 from datetime import datetime
-from datetime import timedelta
 
 from common import config
 from common import logger
@@ -12,7 +10,10 @@ from common.bigquery_client import BigQueryClient
 from common.bigquery_client import BigQueryInsertError
 from common.models import SubredditMetrics
 from common.storage_client import GoogleCloudStorageClient
+from common.utils import get_date
 from common.utils import get_object_key
+from fastapi import FastAPI
+from fastapi import Request
 
 
 def parse_subreddit_metrics_to_bigquery_row_dict(
@@ -32,6 +33,7 @@ def parse_subreddit_metrics_to_bigquery_row_dict(
 def load_subreddit_metrics_into_bigquery(
     bigquery_client: BigQueryClient,
     subreddit_metrics_list: list[SubredditMetrics],
+    project_id: int,
     dataset_id: int,
     table_id: int,
 ) -> None:
@@ -42,13 +44,15 @@ def load_subreddit_metrics_into_bigquery(
         for metrics in subreddit_metrics_list
     ]
     bigquery_client.insert_rows(
+        project_id=project_id,
         dataset_id=dataset_id,
         table_id=table_id,
         row_dicts=subreddit_metrics_dicts,
+        enforce_unique_on=["subreddit", "date"],
     )
 
 
-def main(date: Date) -> None:
+def load(date: Date) -> None:
     logger.info("Starting load task")
 
     exec_datetime = datetime.utcnow()
@@ -60,10 +64,10 @@ def main(date: Date) -> None:
     cloud_storage_client = GoogleCloudStorageClient()
 
     logger.info("Fetching metrics from google cloud storage")
-    object_key = get_object_key(config.GCS_TRANSFORM_PREFIX, date)
+    object_key = get_object_key(date)
     subreddit_metrics = cloud_storage_client.download(
         model_type=SubredditMetrics,
-        bucket_name=config.GCS_BUCKET_NAME,
+        bucket_name=config.GCS_TRANSFORMED_BUCKET_NAME,
         object_key=object_key,
     )
 
@@ -72,6 +76,7 @@ def main(date: Date) -> None:
         load_subreddit_metrics_into_bigquery(
             bigquery_client=bigquery_client,
             subreddit_metrics_list=subreddit_metrics,
+            project_id=config.BIGQUERY_PROJECT_ID,
             dataset_id=config.BIGQUERY_DATASET_ID,
             table_id=config.BIGQUERY_TABLE_ID,
         )
@@ -80,26 +85,12 @@ def main(date: Date) -> None:
         logger.critical(f"Load task encountered error(s): {e}")
 
 
-if __name__ == "__main__":
-    import argparse
+app = FastAPI()
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-d",
-        "--date",
-        help="Date to load posts to (DD/MM/YY)",
-    )
-    args = vars(parser.parse_args())
 
-    if args.get("date"):
-        input_dt = datetime.strptime(str(args.get("date")), "%d/%m/%Y")
-    elif config.DATE_TO_PROCESS is not None:
-        input_dt = datetime.strptime(config.DATE_TO_PROCESS, "%d/%m/%Y")
-    else:
-        input_dt = datetime.now() - timedelta(days=1)
-    input_date = input_dt.date()
-
-    formatter = logging.Formatter(f"%(asctime)s - load({input_date}) - %(levelname)s — %(message)s")
-    for handler in logger.handlers:
-        handler.setFormatter(formatter)
-    main(date=input_date)
+@app.post("/")
+async def handle_event(request: Request):
+    event = await request.json()
+    object_name = event["name"]
+    date_to_load = get_date(object_name)
+    load(date=date_to_load)

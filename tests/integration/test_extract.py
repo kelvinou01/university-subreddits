@@ -17,13 +17,10 @@ def test_extract(date, subreddits, date_to_reddit_posts, date_to_submissions):
         date=date,
         subreddits=subreddits,
     )
-    object_key = get_object_key(
-        prefix="extract-prefix",
-        date=date,
-    )
+    object_key = get_object_key(date)
     fake_google_storage_client.upload(
         objects=new_posts,
-        bucket_name=config.GCS_BUCKET_NAME,
+        bucket_name=config.GCS_RAW_BUCKET_NAME,
         object_key=object_key,
     )
 
@@ -31,7 +28,7 @@ def test_extract(date, subreddits, date_to_reddit_posts, date_to_submissions):
     assert buckets_uploaded == 1
 
     correct_posts = [post for post in date_to_reddit_posts[date] if post.subreddit in subreddits]
-    stored_posts = fake_google_storage_client.buckets[config.GCS_BUCKET_NAME][object_key]
+    stored_posts = fake_google_storage_client.buckets[config.GCS_RAW_BUCKET_NAME][object_key]
 
     correct_posts.sort(key=lambda post: post.post_id)
     stored_posts.sort(key=lambda post: post.post_id)

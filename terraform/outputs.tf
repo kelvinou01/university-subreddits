@@ -19,3 +19,15 @@ output "load_image" {
     var.region, var.project_id, var.docker_repo_id, var.load_image_digest
   )
 }
+
+output "extract_uri" {
+  value = google_cloud_run_v2_service.extract.uri
+}
+
+output "transform_uri" {
+  value = google_cloud_run_v2_service.transform.uri
+}
+
+output "load_uri" {
+  value = google_cloud_run_v2_service.load.uri
+}

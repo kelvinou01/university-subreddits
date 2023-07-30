@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from datetime import date as Date
+from datetime import datetime
 from typing import List
 
 from common.models import AbstractModel
@@ -32,7 +33,7 @@ def get_date_parts_from_date(date: Date) -> tuple[str, str, str]:
     return year, month, day
 
 
-def get_object_key(prefix: str, date: Date) -> str:
+def get_object_key(date: Date) -> str:
     """
     Assuming partitioning by year+month, using the hour as the object name and saving in json format:
     the method returns a cloud storage object key based on a prefix and a datetime object.
@@ -41,7 +42,15 @@ def get_object_key(prefix: str, date: Date) -> str:
     partition_prefix = f"year={year}/month={month}"
     object_name = f"day={day}.json"
 
-    return f"{prefix}/{partition_prefix}/{object_name}"
+    return f"{partition_prefix}/{object_name}"
+
+
+def get_date(object_key: str) -> Date:
+    year_str, month_str, day_str = object_key.split("/")
+    year = int(year_str[5:9])
+    month = int(month_str[6:11])
+    day = int(day_str[4:6])
+    return datetime(year, month, day).date()
 
 
 def estimate_downvotes(upvotes: int, upvote_ratio: float) -> int:
