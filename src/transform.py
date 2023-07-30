@@ -13,17 +13,18 @@ from common.models import RedditPost
 from common.models import SubredditMetrics
 from common.nlp_client import AbstractNLPClient
 from common.nlp_client import GoogleNLPClient
-from common.storage_client import AbstractGoogleCloudStorageClient
+from common.storage_client import AbstractBlobStorageClient
 from common.storage_client import GoogleCloudStorageClient
 from common.utils import get_object_key
+from fastapi import FastAPI
 
 
-def fetch_reddit_posts_dataframe_from_gcs(
-    google_storage_client: AbstractGoogleCloudStorageClient,
+def fetch_reddit_posts_dataframe_from_cloud(
+    storage_client: AbstractBlobStorageClient,
     bucket_name: str,
     object_key: str,
 ) -> pd.DataFrame:
-    reddit_posts = google_storage_client.download(
+    reddit_posts = storage_client.download(
         model_type=RedditPost,
         bucket_name=bucket_name,
         object_key=object_key,
@@ -32,11 +33,11 @@ def fetch_reddit_posts_dataframe_from_gcs(
 
 
 def compute_sentiment_score(
-    google_nlp_client: AbstractNLPClient,
+    nlp_client: AbstractNLPClient,
     reddit_posts: pd.DataFrame,
 ) -> float:
-    scores_of_each_post = google_nlp_client.compute_sentiment_scores(
-        reddit_posts.title,
+    scores_of_each_post = nlp_client.compute_sentiment_scores(
+        list(reddit_posts.title),
     )
     scores_of_each_post = [score for score in scores_of_each_post if score is not None]
     return mean(scores_of_each_post)
@@ -50,7 +51,7 @@ def compute_common_topics(
 
 
 def calculate_subreddit_metrics(
-    google_nlp_client: AbstractNLPClient,
+    nlp_client: AbstractNLPClient,
     reddit_posts_df: pd.DataFrame,
 ) -> pd.DataFrame:
     groupby_subreddit = reddit_posts_df.groupby(["subreddit"])
@@ -63,7 +64,7 @@ def calculate_subreddit_metrics(
     subreddit_to_df = dict(tuple(groupby_subreddit))
 
     subreddit_to_sentiment_scores = {
-        subreddit[0]: compute_sentiment_score(google_nlp_client, df) for subreddit, df in subreddit_to_df.items()
+        subreddit[0]: compute_sentiment_score(nlp_client, df) for subreddit, df in subreddit_to_df.items()
     }
     grouped_df["sentiment_score"] = subreddit_to_sentiment_scores
 
@@ -104,7 +105,7 @@ def get_subreddit_metrics_list_from_metrics_df(
 
 
 def store_metrics_list_to_gcs(
-    google_storage_client: AbstractGoogleCloudStorageClient,
+    storage_client: AbstractBlobStorageClient,
     metrics_list: list[SubredditMetrics],
     date: Date,
 ) -> None:
@@ -112,7 +113,7 @@ def store_metrics_list_to_gcs(
         config.GCS_TRANSFORM_PREFIX,
         date,
     )
-    google_storage_client.upload(
+    storage_client.upload(
         objects=metrics_list,
         bucket_name=config.GCS_BUCKET_NAME,
         object_key=object_key,
@@ -132,8 +133,8 @@ def main(date: Date) -> None:
     object_key = get_object_key(config.GCS_EXTRACT_PREFIX, date)
 
     logger.info("Fetching reddit posts from Google Cloud Storage")
-    reddit_posts_df = fetch_reddit_posts_dataframe_from_gcs(
-        google_storage_client=google_storage_client,
+    reddit_posts_df = fetch_reddit_posts_dataframe_from_cloud(
+        storage_client=google_storage_client,
         bucket_name=config.GCS_BUCKET_NAME,
         object_key=object_key,
     )
@@ -152,7 +153,7 @@ def main(date: Date) -> None:
     )
     logger.info("Storing metrics to Google Cloud Storage")
     store_metrics_list_to_gcs(
-        google_storage_client=google_storage_client,
+        storage_client=google_storage_client,
         metrics_list=metrics_list,
         date=date,
     )

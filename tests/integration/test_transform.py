@@ -5,7 +5,7 @@ from common.utils import get_object_key
 from fakes import FakeCloudStorageClient
 from fakes import FakeNLPClient
 from transform import calculate_subreddit_metrics
-from transform import fetch_reddit_posts_dataframe_from_gcs
+from transform import fetch_reddit_posts_dataframe_from_cloud
 from transform import get_subreddit_metrics_list_from_metrics_df
 from transform import store_metrics_list_to_gcs
 
@@ -23,14 +23,14 @@ def test_transform(date, text_to_sentiment_score, date_to_reddit_posts):
         object_key=reddit_post_obj_key,
     )
 
-    reddit_posts_df = fetch_reddit_posts_dataframe_from_gcs(
-        google_storage_client=fake_storage_client,
+    reddit_posts_df = fetch_reddit_posts_dataframe_from_cloud(
+        storage_client=fake_storage_client,
         bucket_name=config.GCS_BUCKET_NAME,
         object_key=reddit_post_obj_key,
     )
 
     metrics_df = calculate_subreddit_metrics(
-        google_nlp_client=fake_nlp_client,
+        nlp_client=fake_nlp_client,
         reddit_posts_df=reddit_posts_df,
     )
     metrics_list = get_subreddit_metrics_list_from_metrics_df(
@@ -38,7 +38,7 @@ def test_transform(date, text_to_sentiment_score, date_to_reddit_posts):
         date=date,
     )
     store_metrics_list_to_gcs(
-        google_storage_client=fake_storage_client,
+        storage_client=fake_storage_client,
         metrics_list=metrics_list,
         date=date,
     )

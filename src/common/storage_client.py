@@ -10,9 +10,9 @@ from google.api_core.exceptions import NotFound
 from google.cloud import storage
 
 
-class AbstractGoogleCloudStorageClient(ABC):
+class AbstractBlobStorageClient(ABC):
     """
-    Wrapper class for Google Cloud Storage
+    Wrapper class for Cloud Blob Storage
     """
 
     @abstractmethod
@@ -34,7 +34,7 @@ class AbstractGoogleCloudStorageClient(ABC):
         pass
 
 
-class GoogleCloudStorageClient(AbstractGoogleCloudStorageClient):
+class GoogleCloudStorageClient(AbstractBlobStorageClient):
     def __init__(self):
         self.gcs_client = storage.Client()
 
