@@ -62,8 +62,8 @@ def fetch_posts_from_reddit(
     return [convert_submission_to_reddit_post(submission) for submission in new_submissions]
 
 
-def main(date: Date) -> None:
-    logger.info("Starting extract task")
+def extract(date: Date) -> None:
+    logger.info(f"Starting extract task for {date}")
 
     exec_datetime = datetime.utcnow()
     logger.info(
@@ -78,7 +78,7 @@ def main(date: Date) -> None:
     )
     google_storage_client = GoogleCloudStorageClient()
 
-    logger.info("Fetching posts made from reddit")
+    logger.info("Fetching posts from reddit")
     new_posts = fetch_posts_from_reddit(
         reddit_client=reddit_client,
         date=date,
