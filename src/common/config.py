@@ -15,4 +15,5 @@ BIGQUERY_PROJECT_ID = "university-subreddits"
 BIGQUERY_DATASET_ID = "subreddit_metrics"
 BIGQUERY_TABLE_ID = "subreddit_metrics"
 
-DATE_TO_PROCESS = os.environ.get("DATE_TO_PROCESS", None)
+HUGGINGFACE_TOKEN = os.environ["HUGGINGFACE_TOKEN"]
+HUGGINGFACE_MODEL = "finiteautomata/bertweet-base-sentiment-analysis"

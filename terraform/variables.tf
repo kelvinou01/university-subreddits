@@ -42,6 +42,10 @@ variable "reddit_client_secret" {
   type    = string
 }
 
+variable "huggingface_token" {
+  type    = string
+}
+
 variable "subreddits" {
   default = "nus,ntu,sit_singapore,smu_singapore,oxforduni,harvard,cambridge_uni,stanford,mit,berkeley,ucla,ethz,uchicago,uiuc,uwaterloo,aggies,gatech,uoft,uofm,nyu,ubc"
 }

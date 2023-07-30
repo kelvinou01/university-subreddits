@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-import logging
 from datetime import date as Date
 from datetime import datetime
-from datetime import timedelta
 from statistics import mean
 
 import pandas as pd
@@ -13,6 +11,8 @@ from common.models import RedditPost
 from common.models import SubredditMetrics
 from common.nlp_client import AbstractNLPClient
 from common.nlp_client import GoogleNLPClient
+from common.nlp_client import HuggingFaceNLPClient
+from common.nlp_client import InferenceRateLimitException
 from common.storage_client import AbstractBlobStorageClient
 from common.storage_client import GoogleCloudStorageClient
 from common.utils import get_date
@@ -128,6 +128,10 @@ def transform(date: Date) -> None:
     )
 
     google_storage_client = GoogleCloudStorageClient()
+    huggingface_nlp_client = HuggingFaceNLPClient(
+        model=config.HUGGINGFACE_MODEL,
+        api_token=config.HUGGINGFACE_TOKEN,
+    )
     object_key = get_object_key(date)
 
     logger.info("Fetching reddit posts from Google Cloud Storage")
@@ -138,10 +142,22 @@ def transform(date: Date) -> None:
     )
 
     logger.info("Calculating subreddit metrics")
-    metrics_df = calculate_subreddit_metrics(
-        google_nlp_client=google_nlp_client,
-        reddit_posts_df=reddit_posts_df,
-    )
+    try:
+        metrics_df = calculate_subreddit_metrics(
+            nlp_client=huggingface_nlp_client,
+            reddit_posts_df=reddit_posts_df,
+        )
+    except InferenceRateLimitException:
+        logger.warning(
+            "Rate limit of HuggingFace inference API has been met.\
+            Falling back to Google's NLP API.",
+        )
+        google_nlp_client = GoogleNLPClient()
+        metrics_df = calculate_subreddit_metrics(
+            nlp_client=google_nlp_client,
+            reddit_posts_df=reddit_posts_df,
+        )
+
     logger.info(
         "Converting metrics DataFrame to list of SubredditMetrics objects",
     )

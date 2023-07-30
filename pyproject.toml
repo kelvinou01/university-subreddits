@@ -16,6 +16,7 @@ extract = [
 ]
 
 transform = [
+    "requests~=2.31.0",
     "pandas~=2.0.3",
     "google-cloud-language~=2.10.1",
 ]
