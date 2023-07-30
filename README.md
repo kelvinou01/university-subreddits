@@ -20,6 +20,6 @@ All infrastructure is hosted on Google Cloud Platform and managed via Terraform.
 
 - BigQuery for the analytics database
   
-- Cloud Scheduler to trigger the pipeline at set intervals. 
+- Cloud Scheduler to trigger the extract job at set intervals.
 
 - EventArc + Workflows to trigger transform/load jobs upon ingestion of raw/transformed data respectively. 
