@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import copy
 from datetime import date as Date
 from datetime import datetime
 from statistics import mean
+from typing import Set
 
 import pandas as pd
 from common import config
@@ -88,7 +90,9 @@ def calculate_subreddit_metrics(
 def get_subreddit_metrics_list_from_metrics_df(
     metrics_df: pd.DataFrame,
     date: Date,
+    all_subreddits: Set[str],
 ) -> list[SubredditMetrics]:
+    subreddits_with_no_posts = copy.deepcopy(all_subreddits)
     subreddit_metrics = []
     for _, row in metrics_df.iterrows():
         metrics = SubredditMetrics(
@@ -100,6 +104,21 @@ def get_subreddit_metrics_list_from_metrics_df(
             posts=row.posts,
             sentiment_score=row.sentiment_score,
             topics=row.topics,
+            transformed_utc=datetime.utcnow().timestamp(),
+        )
+        subreddit_metrics.append(metrics)
+        subreddits_with_no_posts.remove(row.subreddit)
+
+    for subreddit in subreddits_with_no_posts:
+        metrics = SubredditMetrics(
+            date=date,
+            subreddit=subreddit,
+            upvotes=0,
+            downvotes=0,
+            upvote_ratio=1,
+            posts=0,
+            sentiment_score=0,
+            topics=[],
             transformed_utc=datetime.utcnow().timestamp(),
         )
         subreddit_metrics.append(metrics)
@@ -164,6 +183,7 @@ def transform(date: Date) -> None:
     metrics_list = get_subreddit_metrics_list_from_metrics_df(
         metrics_df=metrics_df,
         date=date,
+        all_subreddits=set(config.SUBREDDITS),
     )
     logger.info("Storing metrics to Google Cloud Storage")
     store_metrics_list_to_gcs(

@@ -11,6 +11,8 @@ from transform import store_metrics_list_to_gcs
 
 
 def test_transform(date, text_to_sentiment_score, date_to_reddit_posts):
+    SUBREDDITS = ["cats", "dogs"]
+
     fake_storage_client = FakeCloudStorageClient()
     fake_nlp_client = FakeNLPClient(
         text_to_sentiment_score=text_to_sentiment_score,
@@ -36,6 +38,7 @@ def test_transform(date, text_to_sentiment_score, date_to_reddit_posts):
     metrics_list = get_subreddit_metrics_list_from_metrics_df(
         metrics_df=metrics_df,
         date=date,
+        all_subreddits=set(SUBREDDITS),
     )
     store_metrics_list_to_gcs(
         storage_client=fake_storage_client,
