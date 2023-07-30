@@ -76,6 +76,20 @@ resource "google_project_iam_member" "workflows_invoker" {
   member = "serviceAccount:${google_service_account.etl.email}"
 }
 
+# Cloud Build (for the gcloud cli tool in Workflow)
+resource "google_project_iam_member" "cloud_build_builder" {
+  project = var.project_id
+  role    = "roles/cloudbuild.builds.builder"
+
+  member = "serviceAccount:${google_service_account.etl.email}"
+}
+
+resource "google_project_iam_member" "self_impersonation" {
+  project = var.project_id
+  role    = "roles/iam.serviceAccountTokenCreator"
+  member  = "serviceAccount:${google_service_account.etl.email}"
+}
+
 # EventArc
 resource "google_project_iam_member" "eventarc_event_receiver" {
   project = var.project_id

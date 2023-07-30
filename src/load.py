@@ -93,6 +93,8 @@ if __name__ == "__main__":
 
     if args.get("date"):
         input_dt = datetime.strptime(str(args.get("date")), "%d/%m/%Y")
+    elif config.DATE_TO_PROCESS is not None:
+        input_dt = datetime.strptime(config.DATE_TO_PROCESS, "%d/%m/%Y")
     else:
         input_dt = datetime.now() - timedelta(days=1)
     input_date = input_dt.date()
