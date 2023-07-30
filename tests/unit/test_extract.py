@@ -22,7 +22,8 @@ def test_remove_posts_not_on_date(date_to_submissions):
         assert filtered_submissions == submissions
 
 
-def test_convert_submission_to_reddit_post(submissions, reddit_posts):
+def test_convert_submission_to_reddit_post(submissions_and_reddit_posts):
+    submissions, reddit_posts = submissions_and_reddit_posts
     for submission, reddit_post in zip(submissions, reddit_posts):
         assert convert_submission_to_reddit_post(submission) == reddit_post
 

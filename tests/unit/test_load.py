@@ -21,17 +21,19 @@ def test_parse_subreddit_metric_to_bigquery_row_dict(subreddit_metrics_list):
 def test_load_subreddit_metrics_into_bigquery(
     subreddit_metrics_list,
     subreddit_metrics_bigquery_rows,
+    project_ids,
     dataset_ids,
     table_ids,
 ):
     fake_bigquery_client = FakeBigQueryClient()
 
-    for dataset_id, table_id in product(dataset_ids, table_ids):
+    for project_id, dataset_id, table_id in product(project_ids, dataset_ids, table_ids):
         load_subreddit_metrics_into_bigquery(
             bigquery_client=fake_bigquery_client,
             subreddit_metrics_list=subreddit_metrics_list,
+            project_id=project_id,
             dataset_id=dataset_id,
             table_id=table_id,
         )
-        stored_data = fake_bigquery_client.dataset_to_table[dataset_id][table_id]
+        stored_data = fake_bigquery_client.data[project_id][dataset_id][table_id]
         assert stored_data == subreddit_metrics_bigquery_rows

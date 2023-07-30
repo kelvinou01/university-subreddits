@@ -61,14 +61,14 @@ def test_get_date_parts_from_date(date_input, expected_parts):
 
 
 @pytest.mark.parametrize(
-    "prefix, date_input, expected_key",
+    "date_input, expected_key",
     [
-        ("prefix", date(2023, 7, 1), "prefix/year=2023/month=07/day=01.json"),
-        ("my-data", date(2020, 12, 25), "my-data/year=2020/month=12/day=25.json"),
+        (date(2023, 7, 1), "year=2023/month=07/day=01.json"),
+        (date(2020, 12, 25), "year=2020/month=12/day=25.json"),
     ],
 )
-def test_get_object_key(prefix, date_input, expected_key):
-    result_key = get_object_key(prefix, date_input)
+def test_get_object_key(date_input, expected_key):
+    result_key = get_object_key(date_input)
     assert result_key == expected_key
 
 

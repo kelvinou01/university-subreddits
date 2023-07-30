@@ -15,17 +15,17 @@ def test_transform(date, text_to_sentiment_score, date_to_reddit_posts):
     fake_nlp_client = FakeNLPClient(
         text_to_sentiment_score=text_to_sentiment_score,
     )
-    reddit_post_obj_key = get_object_key(config.GCS_EXTRACT_PREFIX, date)
+    reddit_post_obj_key = get_object_key(date)
     reddit_posts_to_upload = date_to_reddit_posts[date]
     fake_storage_client.upload(
         objects=reddit_posts_to_upload,
-        bucket_name=config.GCS_BUCKET_NAME,
+        bucket_name=config.GCS_RAW_BUCKET_NAME,
         object_key=reddit_post_obj_key,
     )
 
     reddit_posts_df = fetch_reddit_posts_dataframe_from_cloud(
         storage_client=fake_storage_client,
-        bucket_name=config.GCS_BUCKET_NAME,
+        bucket_name=config.GCS_RAW_BUCKET_NAME,
         object_key=reddit_post_obj_key,
     )
 
@@ -43,6 +43,6 @@ def test_transform(date, text_to_sentiment_score, date_to_reddit_posts):
         date=date,
     )
 
-    metrics_obj_key = get_object_key(config.GCS_TRANSFORM_PREFIX, date)
-    stored_metrics = fake_storage_client.buckets[config.GCS_BUCKET_NAME][metrics_obj_key]
+    metrics_obj_key = get_object_key(date)
+    stored_metrics = fake_storage_client.buckets[config.GCS_TRANSFORMED_BUCKET_NAME][metrics_obj_key]
     assert stored_metrics == metrics_list
