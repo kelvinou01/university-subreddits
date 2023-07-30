@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from datetime import date as Date
 from datetime import datetime
 from datetime import timedelta
@@ -119,7 +120,7 @@ def store_metrics_list_to_gcs(
 
 
 def main(date: Date) -> None:
-    logger.info(f"Starting transform task for {date}")
+    logger.info("Starting transform task")
 
     exec_datetime = datetime.utcnow()
     logger.info(
@@ -172,8 +173,13 @@ if __name__ == "__main__":
 
     if args.get("date"):
         input_dt = datetime.strptime(str(args.get("date")), "%d/%m/%Y")
+    elif config.DATE_TO_PROCESS is not None:
+        input_dt = datetime.strptime(config.DATE_TO_PROCESS, "%d/%m/%Y")
     else:
         input_dt = datetime.now() - timedelta(days=1)
     input_date = input_dt.date()
 
+    formatter = logging.Formatter(f"%(asctime)s - transform({input_date}) - %(levelname)s — %(message)s")
+    for handler in logger.handlers:
+        handler.setFormatter(formatter)
     main(date=input_date)

@@ -14,3 +14,5 @@ GCS_TRANSFORM_PREFIX = "subreddit-metrics"
 
 BIGQUERY_DATASET_ID = "subreddit_metrics"
 BIGQUERY_TABLE_ID = "subreddit_metrics"
+
+DATE_TO_PROCESS = os.environ.get("DATE_TO_PROCESS", None)
