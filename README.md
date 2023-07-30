@@ -14,10 +14,12 @@ Interestingly, this project also yields a world ranking of universities based on
 
 All infrastructure is hosted on Google Cloud Platform and managed via Terraform.
 
-- Python 3.11 docker containers running on Cloud Run Jobs
+- ETL scripts are Python 3.11 docker containers running on Cloud Run Jobs. All jobs are idempotent. 
 
 - Cloud Storage for the raw and transformed data
 
-- Google BigQuery for the analytics database
+- BigQuery for the analytics database
   
-- Cloud Scheduler to trigger the **extract** task, and EventArc + Workflows to trigger the **transform** and **load** tasks
+- Cloud Scheduler to trigger the pipeline at set intervals. 
+
+- EventArc + Workflows to trigger transform/load jobs upon ingestion of raw/transformed data respectively. 
