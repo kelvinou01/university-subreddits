@@ -53,7 +53,7 @@ def load_subreddit_metrics_into_bigquery(
 
 
 def load(date: Date) -> None:
-    logger.info("Starting load task")
+    logger.info(f"Starting load task for {date}")
 
     exec_datetime = datetime.utcnow()
     logger.info(
