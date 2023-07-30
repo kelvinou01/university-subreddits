@@ -1,6 +1,6 @@
 from __future__ import annotations
-import logging
 
+import logging
 import math
 from datetime import date as Date
 from datetime import datetime

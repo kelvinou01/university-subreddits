@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import json
 from abc import ABC
 from abc import abstractmethod
-from google.api_core.exceptions import BadRequest
-from google.cloud import bigquery
-import json
 
 from common import logger
+from google.api_core.exceptions import BadRequest
+from google.cloud import bigquery
+
 
 class BigQueryInsertError(Exception):
     pass
@@ -48,10 +49,16 @@ class BigQueryClient(AbstractBigQueryClient):
         key_columns: list[str],
     ) -> None:
         for row_dict in row_dicts:
-            where_statements = [f"{col} = '{row_dict[col]}'" if type(row_dict[col]) == str else f"{col} = {row_dict[col]}" for col in key_columns]
+            where_statements = [
+                f"{col} = '{row_dict[col]}'" if type(row_dict[col]) == str else f"{col} = {row_dict[col]}"
+                for col in key_columns
+            ]
             where_statement = " AND ".join(where_statements)
 
-            set_statements = [f"{col} = '{row_dict[col]}'" if type(row_dict[col]) == str else f"{col} = {row_dict[col]}" for col in row_dict]
+            set_statements = [
+                f"{col} = '{row_dict[col]}'" if type(row_dict[col]) == str else f"{col} = {row_dict[col]}"
+                for col in row_dict
+            ]
             set_statement = ", ".join(set_statements)
 
             query = f"""
@@ -73,10 +80,7 @@ class BigQueryClient(AbstractBigQueryClient):
         key_columns: list[str],
     ) -> list[dict]:
 
-        duplicate_set = {
-            tuple(row_dict[col] for col in key_columns)
-            for row_dict in duplicate_row_dicts
-        }
+        duplicate_set = {tuple(row_dict[col] for col in key_columns) for row_dict in duplicate_row_dicts}
         non_duplicate_rows_dicts = []
         for row_dict in row_dicts:
             values_to_check = tuple(row_dict[col] for col in key_columns)
@@ -92,15 +96,16 @@ class BigQueryClient(AbstractBigQueryClient):
         row_dicts: list[dict],
         key_columns: list[str],
     ) -> list[dict]:
-        col_to_values = {col: [] for col in key_columns}
+        col_to_values: dict[str, list] = {col: [] for col in key_columns}
         for row_dict in row_dicts:
             for col in key_columns:
                 col_to_values[col].append(row_dict[col])
-        for col, values in col_to_values.items():
-            values_str = ", ".join(f"'{value}'" if type(value) == str else str(value) for value in values)
-            col_to_values[col] = values_str
+        col_to_values_string: dict[str, str] = {
+            col: ", ".join(f"'{value}'" if type(value) == str else str(value) for value in values)
+            for col, values in col_to_values.items()
+        }
 
-        where_statements = [f"{col} IN ({values})" for col, values in col_to_values.items()]
+        where_statements = [f"{col} IN ({values})" for col, values in col_to_values_string.items()]
         where_statement = " AND ".join(where_statements)
         query = f"""
             SELECT *
@@ -132,7 +137,7 @@ class BigQueryClient(AbstractBigQueryClient):
         dataset_id: str,
         table_id: str,
         row_dicts: list[dict],
-        enforce_unique_on: list[str]
+        enforce_unique_on: list[str],
     ) -> None:
         duplicate_row_dicts = self._get_duplicate_rows(
             project_id=project_id,

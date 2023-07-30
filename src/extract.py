@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+import logging
 from datetime import date as Date
 from datetime import datetime
 from datetime import timedelta
-import logging
 from typing import List
 
 from common import config

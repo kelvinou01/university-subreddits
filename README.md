@@ -15,9 +15,9 @@ Interestingly, this project also yields a world ranking of universities based on
 All infrastructure is hosted on Google Cloud Platform and managed via Terraform.
 
 - Python 3.11 docker containers running on Cloud Run Jobs
-  
+
 - Cloud Storage for the raw and transformed data
-  
+
 - Google BigQuery for the analytics database
-  
+
 - Cloud Scheduler to trigger the **extract** task, and EventArc + Workflows to trigger the **transform** and **load** tasks
