@@ -47,5 +47,7 @@ variable "huggingface_token" {
 }
 
 variable "subreddits" {
-  default = "nus,ntu,sit_singapore,smu_singapore,oxforduni,harvard,cambridge_uni,stanford,mit,berkeley,ucla,ethz,uchicago,uiuc,uwaterloo,aggies,gatech,uoft,uofm,nyu,ubc"
+  type = string
+  description = "Comma-seperated, case-sensitive subreddtit names"
+  default = "nus,NTU,SIT_singapore,SMU_singapore,oxforduni,Harvard,cambridge_uni,stanford,mit,berkeley,ucla,ethz,uchicago,UIUC,uwaterloo,aggies,gatech,UofT,uofm,nyu,UBC"
 }
