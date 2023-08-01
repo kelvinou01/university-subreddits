@@ -9,18 +9,18 @@ from typing import Set
 import pandas as pd
 from common import config
 from common import logger
+from common.middleware import LoggingMiddleware
 from common.models import RedditPost
 from common.models import SubredditMetrics
 from common.nlp_client import AbstractNLPClient
-from common.nlp_client import GoogleNLPClient
 from common.nlp_client import HuggingFaceNLPClient
-from common.nlp_client import InferenceRateLimitException
 from common.storage_client import AbstractBlobStorageClient
 from common.storage_client import GoogleCloudStorageClient
 from common.utils import get_date
 from common.utils import get_object_key
 from fastapi import FastAPI
 from fastapi import Request
+from fastapi import Response
 
 
 def fetch_reddit_posts_dataframe_from_cloud(
@@ -161,21 +161,10 @@ def transform(date: Date) -> None:
     )
 
     logger.info("Calculating subreddit metrics")
-    try:
-        metrics_df = calculate_subreddit_metrics(
-            nlp_client=huggingface_nlp_client,
-            reddit_posts_df=reddit_posts_df,
-        )
-    except InferenceRateLimitException:
-        logger.warning(
-            "Rate limit of HuggingFace inference API has been met.\
-            Falling back to Google's NLP API.",
-        )
-        google_nlp_client = GoogleNLPClient()
-        metrics_df = calculate_subreddit_metrics(
-            nlp_client=google_nlp_client,
-            reddit_posts_df=reddit_posts_df,
-        )
+    metrics_df = calculate_subreddit_metrics(
+        nlp_client=huggingface_nlp_client,
+        reddit_posts_df=reddit_posts_df,
+    )
 
     logger.info(
         "Converting metrics DataFrame to list of SubredditMetrics objects",
@@ -196,6 +185,13 @@ def transform(date: Date) -> None:
 
 
 app = FastAPI()
+
+
+@app.middleware("http")
+async def add_logging_prefix(request: Request, call_next) -> Response:
+    middleware = LoggingMiddleware(call_next, "transform")
+    response = await middleware(request)
+    return response
 
 
 @app.post("/")

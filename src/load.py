@@ -8,12 +8,14 @@ from common import config
 from common import logger
 from common.bigquery_client import BigQueryClient
 from common.bigquery_client import BigQueryInsertError
+from common.middleware import LoggingMiddleware
 from common.models import SubredditMetrics
 from common.storage_client import GoogleCloudStorageClient
 from common.utils import get_date
 from common.utils import get_object_key
 from fastapi import FastAPI
 from fastapi import Request
+from fastapi import Response
 
 
 def parse_subreddit_metrics_to_bigquery_row_dict(
@@ -86,6 +88,13 @@ def load(date: Date) -> None:
 
 
 app = FastAPI()
+
+
+@app.middleware("http")
+async def add_logging_prefix(request: Request, call_next) -> Response:
+    middleware = LoggingMiddleware(call_next, "load")
+    response = await middleware(request)
+    return response
 
 
 @app.post("/")

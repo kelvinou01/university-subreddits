@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from datetime import date as Date
 from datetime import datetime
+from datetime import timedelta
 from typing import List
 
 from common.models import AbstractModel
@@ -65,3 +66,8 @@ def estimate_downvotes(upvotes: int, upvote_ratio: float) -> int:
         # rearranged: upvote_ratio = upvotes / (upvotes + downvotes)
         estimated_downvotes = upvotes / upvote_ratio - upvotes
     return int(round(estimated_downvotes))
+
+
+def get_default_date_for_extract_call():
+    default_date = datetime.today() - timedelta(days=1)
+    return default_date.date()

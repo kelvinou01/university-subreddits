@@ -2,19 +2,22 @@ from __future__ import annotations
 
 from datetime import date as Date
 from datetime import datetime
-from datetime import timedelta
 from typing import List
 
 from common import config
 from common import logger
+from common.middleware import LoggingMiddleware
 from common.models import RedditPost
 from common.reddit_client import AbstractRedditClient
 from common.reddit_client import RedditClient
 from common.storage_client import GoogleCloudStorageClient
 from common.utils import estimate_downvotes
+from common.utils import get_default_date_for_extract_call
 from common.utils import get_object_key
 from fastapi import FastAPI
 from fastapi import HTTPException
+from fastapi import Request
+from fastapi import Response
 
 
 def convert_submission_to_reddit_post(submission: dict) -> RedditPost:
@@ -111,6 +114,13 @@ def parse_and_check_date(input_date: str) -> Date:
 app = FastAPI()
 
 
+@app.middleware("http")
+async def add_logging_prefix(request: Request, call_next) -> Response:
+    middleware = LoggingMiddleware(call_next, "extract")
+    response = await middleware(request)
+    return response
+
+
 @app.get("/")
 def handle_event(date: str = None):
     if date:
@@ -119,7 +129,6 @@ def handle_event(date: str = None):
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
     else:
-        date_to_extract = datetime.today() - timedelta(days=1)
-        date_to_extract = date_to_extract.date()
+        date_to_extract = get_default_date_for_extract_call()
 
     extract(date=date_to_extract)
