@@ -50,7 +50,11 @@ class HuggingFaceNLPClient(AbstractNLPClient):
         neutral_score = None
         positive_score = None
         negative_score = None
+        if any(type(res) == str for res in response):
+            raise ValueError("HuggingFace returned an exception: ", response)
+
         for res in response:
+
             if res["label"] == "NEU":
                 neutral_score = res["score"]
             elif res["label"] == "POS":

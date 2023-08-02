@@ -71,7 +71,9 @@ class BigQueryClient(AbstractBigQueryClient):
                 job.result()
             except BadRequest as e:
                 row_identifier = tuple(row_dict[col] for col in key_columns)
-                logger.warning(f"_update_rows encountered an error for row {row_identifier}: {e}")
+                logger.warning(
+                    f"_update_rows encountered an error. The row '{row_identifier}' will not be updated: {e}",
+                )
 
     def _get_non_duplicate_rows(
         self,
