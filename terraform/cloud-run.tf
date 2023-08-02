@@ -4,6 +4,10 @@ resource "google_cloud_run_v2_service" "extract" {
   ingress  = "INGRESS_TRAFFIC_INTERNAL_ONLY"
 
   template {
+    scaling {
+      min_instance_count = 0
+      max_instance_count = 100
+    }
     containers {
       image = format(
         "%s-docker.pkg.dev/%s/%s/extract@%s",
@@ -47,6 +51,10 @@ resource "google_cloud_run_v2_service" "transform" {
   ingress  = "INGRESS_TRAFFIC_INTERNAL_ONLY"
 
   template {
+    scaling {
+      min_instance_count = 0
+      max_instance_count = 100
+    }
     containers {
       image = format(
         "%s-docker.pkg.dev/%s/%s/transform@%s",
@@ -90,6 +98,10 @@ resource "google_cloud_run_v2_service" "load" {
   ingress  = "INGRESS_TRAFFIC_INTERNAL_ONLY"
 
   template {
+    scaling {
+      min_instance_count = 0
+      max_instance_count = 100
+    }
     containers {
       image = format(
         "%s-docker.pkg.dev/%s/%s/load@%s",
