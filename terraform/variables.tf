@@ -47,7 +47,7 @@ variable "huggingface_token" {
 }
 
 variable "subreddits" {
-  type = string
-  description = "Comma-seperated, case-sensitive subreddtit names"
-  default = "nus,NTU,SIT_singapore,SMU_singapore,oxforduni,Harvard,cambridge_uni,stanford,mit,berkeley,ucla,ethz,uchicago,UIUC,uwaterloo,aggies,gatech,UofT,uofm,nyu,UBC"
+  type        = string
+  description = "Comma-seperated, case-sensitive subreddit names"
+  default     = "nus,NTU,SIT_Singapore,SMU_Singapore,oxforduni,Harvard,cambridge_uni,stanford,mit,berkeley,ucla,ethz,uchicago,UIUC,uwaterloo,aggies,gatech,UofT,uofm,nyu,UBC"
 }

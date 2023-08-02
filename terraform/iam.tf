@@ -1,4 +1,8 @@
 
+locals {
+  pubsub_service_account = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+}
+
 resource "google_service_account" "etl" {
   account_id   = "etl-service-account"
   display_name = "ETL Service Account"
@@ -61,6 +65,24 @@ resource "google_project_iam_member" "cloud_run_developer" {
   member  = "serviceAccount:${google_service_account.etl.email}"
 }
 
+data "google_iam_policy" "noauth" {
+  binding {
+    role    = "roles/run.invoker"
+    members = ["allUsers"]
+  }
+}
+
+# Grant authenticated access for Cloud Scheduler
+# This is safe, as only internal requests are allowed on the extract service
+resource "google_cloud_run_service_iam_policy" "noauth" {
+  location = google_cloud_run_v2_service.extract.location
+  project  = google_cloud_run_v2_service.extract.project
+  service  = google_cloud_run_v2_service.extract.name
+
+  policy_data = data.google_iam_policy.noauth.policy_data
+  depends_on  = [resource.google_cloud_run_v2_service.extract]
+}
+
 # Scheduler
 resource "google_project_iam_member" "cloud_scheduler_admin" {
   project = var.project_id
@@ -76,18 +98,26 @@ resource "google_project_iam_member" "workflows_invoker" {
   member = "serviceAccount:${google_service_account.etl.email}"
 }
 
-# EventArc
-resource "google_project_iam_member" "eventarc_event_receiver" {
-  project = var.project_id
-  role    = "roles/eventarc.eventReceiver"
-
-  member = "serviceAccount:${google_service_account.etl.email}"
-}
-
-# PubSub (For GCS CloudEvent trigger)
-resource "google_project_iam_member" "pubsub_publisher" {
+# PubSub
+# Allow Cloud Storage to send object notifications
+resource "google_project_iam_member" "storage_pubsub_publisher" {
   project = var.project_id
   role    = "roles/pubsub.publisher"
 
   member = "serviceAccount:${data.google_storage_project_service_account.gcs.email_address}"
+}
+
+# Allow Pub/Sub to publish to dead letter queues
+resource "google_project_iam_member" "pubsub_publisher" {
+  project = var.project_id
+  role    = "roles/pubsub.publisher"
+
+  member = local.pubsub_service_account
+}
+
+resource "google_project_iam_member" "pubsub_subscriber" {
+  project = var.project_id
+  role    = "roles/pubsub.subscriber"
+
+  member = local.pubsub_service_account
 }

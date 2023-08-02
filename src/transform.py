@@ -197,6 +197,7 @@ async def add_logging_prefix(request: Request, call_next) -> Response:
 @app.post("/")
 async def handle_event(request: Request):
     event = await request.json()
-    object_name = event["name"]
+    object_name = event["message"]["attributes"]["objectId"]
     date_to_transform = get_date(object_name)
     transform(date=date_to_transform)
+    return Response(status_code=200)

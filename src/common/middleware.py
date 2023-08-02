@@ -1,17 +1,23 @@
+from __future__ import annotations
+
 import json
 import logging
+from datetime import date as Date
+from datetime import datetime
 from typing import Callable
-from fastapi import Request, Response
-from datetime import date as Date, datetime
 
-from common.utils import get_date, get_default_date_for_extract_call
+from common.utils import get_date
+from common.utils import get_default_date_for_extract_call
+from fastapi import Request
+from fastapi import Response
 
 
 class LoggingMiddleware:
     """
-    For every call to extract/transform/load, prepend the date
-    that is being processed to all logs.
+    For every call to extract/transform/load, include the pipeline stage
+    and the date being logged in the logging message.
     """
+
     def __init__(self, app: Callable, pipeline_stage: str):
         self.app = app
         self.pipeline_stage = pipeline_stage
@@ -19,6 +25,7 @@ class LoggingMiddleware:
     async def set_body(self, request: Request, body: bytes):
         async def receive():
             return {"type": "http.request", "body": body}
+
         request._receive = receive
 
     async def get_body(self, request: Request) -> bytes:
@@ -38,8 +45,9 @@ class LoggingMiddleware:
         # during the lifetime of a request.
         # https://github.com/tiangolo/fastapi/issues/394#issuecomment-883524819
         await self.set_body(request, await request.body())
-        request_body = json.loads(await self.get_body(request))
-        date_to_process = get_date(request_body["name"])
+        event = json.loads(await self.get_body(request))
+        object_id = event["message"]["attributes"]["objectId"]
+        date_to_process = get_date(object_id)
         return date_to_process
 
     async def _get_date_to_process(self, request: Request) -> Date:
