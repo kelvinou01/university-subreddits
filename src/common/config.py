@@ -12,8 +12,8 @@ GCS_RAW_BUCKET_NAME = os.environ["GCS_RAW_BUCKET_NAME"]
 GCS_TRANSFORMED_BUCKET_NAME = os.environ["GCS_TRANSFORMED_BUCKET_NAME"]
 
 BIGQUERY_PROJECT_ID = "university-subreddits"
-BIGQUERY_DATASET_ID = "subreddit_metrics"
-BIGQUERY_TABLE_ID = "subreddit_metrics"
+BIGQUERY_DATASET_ID = os.environ["BIGQUERY_DATASET_ID"]
+BIGQUERY_TABLE_ID = os.environ["BIGQUERY_TABLE_ID"]
 
 HUGGINGFACE_TOKEN = os.environ["HUGGINGFACE_TOKEN"]
 HUGGINGFACE_MODEL = "finiteautomata/bertweet-base-sentiment-analysis"
