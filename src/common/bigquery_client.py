@@ -40,6 +40,14 @@ class BigQueryClient(AbstractBigQueryClient):
     def __init__(self):
         self.bigquery_client = bigquery.Client()
 
+    def _format_value(self, value):
+        if value is None:
+            return "null"
+        elif isinstance(value, str):
+            return f"'{value}'"
+        else:
+            return str(value)
+
     def _update_rows(
         self,
         project_id: str,
@@ -49,16 +57,16 @@ class BigQueryClient(AbstractBigQueryClient):
         key_columns: list[str],
     ) -> None:
         for row_dict in row_dicts:
-            where_statements = [
-                f"{col} = '{row_dict[col]}'" if type(row_dict[col]) == str else f"{col} = {row_dict[col]}"
-                for col in key_columns
-            ]
+            where_statements = []
+            for col in key_columns:
+                value = self._format_value(row_dict[col])
+                where_statements.append(f"{col} = {value}")
             where_statement = " AND ".join(where_statements)
 
-            set_statements = [
-                f"{col} = '{row_dict[col]}'" if type(row_dict[col]) == str else f"{col} = {row_dict[col]}"
-                for col in row_dict
-            ]
+            set_statements = []
+            for col in row_dict:
+                value = self._format_value(row_dict[col])
+                set_statements.append(f"{col} = {value}")
             set_statement = ", ".join(set_statements)
 
             query = f"""
@@ -72,7 +80,7 @@ class BigQueryClient(AbstractBigQueryClient):
             except BadRequest as e:
                 row_identifier = tuple(row_dict[col] for col in key_columns)
                 logger.warning(
-                    f"_update_rows encountered an error. The row '{row_identifier}' will not be updated: {e}",
+                    f"_update_rows could not update '{row_identifier}': {e}",
                 )
 
     def _get_non_duplicate_rows(
@@ -126,9 +134,11 @@ class BigQueryClient(AbstractBigQueryClient):
         row_dicts: list[dict],
     ) -> None:
         table_ref = self.bigquery_client.dataset(dataset_id).table(table_id)
-        errors = self.bigquery_client.insert_rows_json(
+        table = self.bigquery_client.get_table(table_ref)
+        errors = self.bigquery_client.insert_rows(
             table_ref,
             row_dicts,
+            selected_fields=table.schema,
         )
         if errors:
             raise BigQueryInsertError(errors)
