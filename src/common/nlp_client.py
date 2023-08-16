@@ -15,6 +15,10 @@ class InferenceRateLimitException(Exception):
     pass
 
 
+class InferenceException(Exception):
+    pass
+
+
 class AbstractNLPClient(ABC):
     @abstractmethod
     def compute_sentiment_scores(self, texts: list[str]) -> list[Union[float, None]]:
@@ -47,28 +51,27 @@ class HuggingFaceNLPClient(AbstractNLPClient):
         self.inference_url = f"https://api-inference.huggingface.co/models/{model}"
 
     def _parse_huggingface_response_into_float(self, response: list[dict]) -> float:
-        neutral_score = None
-        positive_score = None
-        negative_score = None
+        scores = {
+            "NEU": None,
+            "POS": None,
+            "NEG": None,
+        }
+
         if any(type(res) == str for res in response):
-            raise ValueError("HuggingFace returned an exception: ", response)
+            raise InferenceException(f"HuggingFace returned an exception: {response}")
 
         for res in response:
-
-            if res["label"] == "NEU":
-                neutral_score = res["score"]
-            elif res["label"] == "POS":
-                positive_score = res["score"]
-            elif res["label"] == "NEG":
-                negative_score = res["score"]
+            label = res["label"]
+            if label in scores:
+                scores[label] = res["score"]
             else:
-                raise ValueError("Invalid label for HuggingFace response: ", res)
+                raise InferenceException(f"Invalid label for HuggingFace response: {res}")
 
-        scores = [neutral_score, positive_score, negative_score]
-        if any(score is None for score in scores):
-            raise ValueError(f"Invalid response from HuggingFace: {response}")
+        if any(score is None for score in scores.values()):
+            raise InferenceException(f"Response returned from HuggingFace has a missing score: {response}")
 
-        integrated_sentiment_score = (positive_score - negative_score) / (1 - neutral_score)  # type: ignore
+        neu_score, pos_score, neg_score = scores.values()
+        integrated_sentiment_score = (pos_score - neg_score) / (1 - neu_score)  # type: ignore
         return integrated_sentiment_score
 
     def _parse_huggingface_responses_into_floats(self, responses: list[list[dict]]) -> list[Optional[float]]:
