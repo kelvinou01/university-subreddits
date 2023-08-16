@@ -9,3 +9,6 @@ src/scripts/
 .terraform*
 .vscode
 .pytest_cache
+.historical-data
+build/
+*university_subreddits.egg-info

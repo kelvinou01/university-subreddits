@@ -35,15 +35,15 @@ variable "load_image_digest" {
 }
 
 variable "reddit_client_id" {
-  type    = string
+  type = string
 }
 
 variable "reddit_client_secret" {
-  type    = string
+  type = string
 }
 
 variable "huggingface_token" {
-  type    = string
+  type = string
 }
 
 variable "subreddits" {

@@ -18,15 +18,15 @@ resource "google_storage_notification" "transformed_data" {
 }
 
 resource "google_pubsub_topic" "transform" {
-  name = "transform"
+  name = "transform-${terraform.workspace}"
 }
 
 resource "google_pubsub_topic" "load" {
-  name = "load"
+  name = "load-${terraform.workspace}"
 }
 
 resource "google_pubsub_subscription" "transform" {
-  name  = "transform"
+  name  = "transform-${terraform.workspace}"
   topic = google_pubsub_topic.transform.name
 
   ack_deadline_seconds = 600
@@ -52,7 +52,7 @@ resource "google_pubsub_subscription" "transform" {
 }
 
 resource "google_pubsub_subscription" "load" {
-  name  = "load"
+  name  = "load-${terraform.workspace}"
   topic = google_pubsub_topic.load.name
 
   ack_deadline_seconds = 600
@@ -78,11 +78,11 @@ resource "google_pubsub_subscription" "load" {
 }
 
 resource "google_pubsub_topic" "transform_dead_letter" {
-  name                       = "transform-dead-letter"
+  name                       = "transform-dead-letter-${terraform.workspace}"
   message_retention_duration = "600s"
 }
 
 resource "google_pubsub_topic" "load_dead_letter" {
-  name                       = "load-dead-letter"
+  name                       = "load-dead-letter-${terraform.workspace}"
   message_retention_duration = "600s"
 }

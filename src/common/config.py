@@ -8,8 +8,8 @@ REDDIT_USER_AGENT = "UniversitySubreddits"
 
 SUBREDDITS = os.environ["SUBREDDITS"].split(",")
 
-GCS_RAW_BUCKET_NAME = "university-subreddits-raw"
-GCS_TRANSFORMED_BUCKET_NAME = "university-subreddits-transformed"
+GCS_RAW_BUCKET_NAME = os.environ["GCS_RAW_BUCKET_NAME"]
+GCS_TRANSFORMED_BUCKET_NAME = os.environ["GCS_TRANSFORMED_BUCKET_NAME"]
 
 BIGQUERY_PROJECT_ID = "university-subreddits"
 BIGQUERY_DATASET_ID = "subreddit_metrics"

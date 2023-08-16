@@ -1,5 +1,5 @@
 resource "google_bigquery_dataset" "subreddit_metrics" {
-  dataset_id    = "subreddit_metrics"
+  dataset_id    = "subreddit_metrics_${terraform.workspace}"
   friendly_name = "Subreddit Metrics"
   description   = "Main dataset for the University Subreddits project"
   location      = var.region
@@ -21,7 +21,7 @@ resource "google_bigquery_dataset" "subreddit_metrics" {
 
 resource "google_bigquery_table" "subreddit_metrics" {
   dataset_id = google_bigquery_dataset.subreddit_metrics.dataset_id
-  table_id   = "subreddit_metrics"
+  table_id   = "subreddit_metrics_${terraform.workspace}"
 
   labels = {
     env = "default"
