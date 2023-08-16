@@ -1,6 +1,7 @@
 # Ref: https://cloud.google.com/run/docs/execute/jobs-on-schedule#terraform
 resource "google_cloud_scheduler_job" "extract_scheduler" {
-  name        = "extract-scheduler"
+  count       = "${terraform.workspace}" == "prod" ? 1 : 0
+  name        = "extract-scheduler-${terraform.workspace}"
   description = "Scheduler to trigger the extract function"
 
   schedule  = "0 18 * * *"

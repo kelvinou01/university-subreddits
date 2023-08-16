@@ -1,0 +1,40 @@
+name: 'Build Docker Images'
+
+on:
+  workflow_run:
+    workflows: ["Run Tests"]
+    types: 
+      - completed
+
+jobs:
+  build:
+    name: 'Build Docker Images'
+    runs-on: ubuntu-latest
+    environment: ${GITHUB_REF##*/}
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./
+
+    steps:
+      - name: "Terminate if tests failed"
+        if: ${{ github.event.workflow_run.conclusion != 'success' }}
+        run: exit 1
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: "Authenticate to Google Cloud"
+        uses: "google-github-actions/auth@v1"
+        with:
+          credentials_json: "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}"
+
+      - name: "Build Extract"
+        run: gcloud builds submit --config=dockerfiles/cloudbuild.yml --substitutions=_IMAGE_NAME="extract" .
+
+      - name: "Build Transform"
+        run: gcloud builds submit --config=dockerfiles/cloudbuild.yml --substitutions=_IMAGE_NAME="transform" .
+
+      - name: "Build Load"
+        run: gcloud builds submit --config=dockerfiles/cloudbuild.yml --substitutions=_IMAGE_NAME="load" .

@@ -1,5 +1,5 @@
 resource "google_cloud_run_v2_service" "extract" {
-  name     = "extract"
+  name     = "extract-${terraform.workspace}"
   location = var.region
   ingress  = "INGRESS_TRAFFIC_INTERNAL_ONLY"
 
@@ -32,6 +32,14 @@ resource "google_cloud_run_v2_service" "extract" {
         name  = "HUGGINGFACE_TOKEN"
         value = var.huggingface_token
       }
+      env {
+        name  = "GCS_RAW_BUCKET_NAME"
+        value = google_storage_bucket.raw_data_bucket.name
+      }
+      env {
+        name  = "GCS_TRANSFORMED_BUCKET_NAME"
+        value = google_storage_bucket.transformed_data_bucket.name
+      }
     }
     service_account = google_service_account.etl.email
   }
@@ -46,7 +54,7 @@ resource "google_cloud_run_v2_service" "extract" {
 }
 
 resource "google_cloud_run_v2_service" "transform" {
-  name     = "transform"
+  name     = "transform-${terraform.workspace}"
   location = var.region
   ingress  = "INGRESS_TRAFFIC_INTERNAL_ONLY"
 
@@ -79,6 +87,14 @@ resource "google_cloud_run_v2_service" "transform" {
         name  = "HUGGINGFACE_TOKEN"
         value = var.huggingface_token
       }
+      env {
+        name  = "GCS_RAW_BUCKET_NAME"
+        value = google_storage_bucket.raw_data_bucket.name
+      }
+      env {
+        name  = "GCS_TRANSFORMED_BUCKET_NAME"
+        value = google_storage_bucket.transformed_data_bucket.name
+      }
     }
     service_account = google_service_account.etl.email
   }
@@ -93,7 +109,7 @@ resource "google_cloud_run_v2_service" "transform" {
 }
 
 resource "google_cloud_run_v2_service" "load" {
-  name     = "load"
+  name     = "load-${terraform.workspace}"
   location = var.region
   ingress  = "INGRESS_TRAFFIC_INTERNAL_ONLY"
 
@@ -125,6 +141,14 @@ resource "google_cloud_run_v2_service" "load" {
       env {
         name  = "HUGGINGFACE_TOKEN"
         value = var.huggingface_token
+      }
+      env {
+        name  = "GCS_RAW_BUCKET_NAME"
+        value = google_storage_bucket.raw_data_bucket.name
+      }
+      env {
+        name  = "GCS_TRANSFORMED_BUCKET_NAME"
+        value = google_storage_bucket.transformed_data_bucket.name
       }
     }
     service_account = google_service_account.etl.email

@@ -36,14 +36,17 @@ variable "load_image_digest" {
 
 variable "reddit_client_id" {
   type    = string
+  default = "w4YVv8aziZ7DgUQDjAooWQ"
 }
 
 variable "reddit_client_secret" {
   type    = string
+  default = "4r5ZL-Z2N08taBxS5E8MCs3LXkjphQ"
 }
 
 variable "huggingface_token" {
   type    = string
+  default = "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"
 }
 
 variable "subreddits" {

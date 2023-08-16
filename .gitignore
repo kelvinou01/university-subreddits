@@ -9,3 +9,4 @@ src/scripts/
 .terraform*
 .vscode
 .pytest_cache
+.historical-data

@@ -1,5 +1,5 @@
 resource "google_storage_bucket" "raw_data_bucket" {
-  name          = "university-subreddits-raw"
+  name          = "university-subreddits-raw-${terraform.workspace}"
   location      = var.region
   storage_class = "STANDARD"
 
@@ -11,7 +11,7 @@ resource "google_storage_bucket" "raw_data_bucket" {
 }
 
 resource "google_storage_bucket" "transformed_data_bucket" {
-  name          = "university-subreddits-transformed"
+  name          = "university-subreddits-transformed-${terraform.workspace}"
   location      = var.region
   storage_class = "STANDARD"
 

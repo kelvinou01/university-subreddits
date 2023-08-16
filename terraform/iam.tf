@@ -4,7 +4,7 @@ locals {
 }
 
 resource "google_service_account" "etl" {
-  account_id   = "etl-service-account"
+  account_id   = "etl-service-account-${terraform.workspace}"
   display_name = "ETL Service Account"
 }
 
