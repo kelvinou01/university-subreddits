@@ -3,7 +3,7 @@ name: 'Terraform Apply'
 on:
   workflow_run:
     workflows: ["Build Docker Images"]
-    types: 
+    types:
       - completed
 
 jobs:
@@ -32,13 +32,13 @@ jobs:
       uses: 'google-github-actions/auth@v1'
       with:
         credentials_json: '${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}'
-    
+
     - name: Get Image Digests
       id: get_image_digests
       run: |
-        echo 'extract_image_digest=$(gcloud artifacts docker images describe asia-southeast1-docker.pkg.dev/university-subreddits/etl/extract:latest --format="value(image_summary.digest)")' >> $GITHUB_OUTPUT
-        echo 'transform_image_digest=$(gcloud artifacts docker images describe asia-southeast1-docker.pkg.dev/university-subreddits/etl/transform:latest --format="value(image_summary.digest)")' >> $GITHUB_OUTPUT
-        echo 'load_image_digest=$(gcloud artifacts docker images describe asia-southeast1-docker.pkg.dev/university-subreddits/etl/load:latest --format="value(image_summary.digest)")' >> $GITHUB_OUTPUT
+        echo "extract_image_digest=$(gcloud artifacts docker images describe asia-southeast1-docker.pkg.dev/university-subreddits/etl-images/extract:latest --format='value(image_summary.digest)')" >> $GITHUB_OUTPUT
+        echo "transform_image_digest=$(gcloud artifacts docker images describe asia-southeast1-docker.pkg.dev/university-subreddits/etl-images/transform:latest --format='value(image_summary.digest)')" >> $GITHUB_OUTPUT
+        echo "load_image_digest=$(gcloud artifacts docker images describe asia-southeast1-docker.pkg.dev/university-subreddits/etl-images/load:latest --format='value(image_summary.digest)')" >> $GITHUB_OUTPUT
 
     - name: Terraform Init
       run: terraform init
@@ -53,9 +53,9 @@ jobs:
       run: |
         terraform plan  \
           -input=false  \
-          -var extract_image_digest=${{steps.get_image_digest.outputs.extract_image_digest}}  \
-          -var transform_image_digest=${{steps.get_image_digest.outputs.transform_image_digest}}  \
-          -var load_image_digest=${{steps.get_image_digest.outputs.load_image_digest}}  \
+          -var extract_image_digest=${{steps.get_image_digests.outputs.extract_image_digest}}  \
+          -var transform_image_digest=${{steps.get_image_digests.outputs.transform_image_digest}}  \
+          -var load_image_digest=${{steps.get_image_digests.outputs.load_image_digest}}  \
           -var credentials=$GOOGLE_APPLICATION_CREDENTIALS  \
           -var reddit_client_id=${{secrets.REDDIT_CLIENT_ID}}  \
           -var reddit_client_secret=${{secrets.REDDIT_CLIENT_SECRET}}  \
@@ -71,16 +71,16 @@ jobs:
           #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
           #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
           #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
- 
+
           <details><summary>Show Plan</summary>
- 
+
           \`\`\`\n
           ${process.env.PLAN}
           \`\`\`
- 
+
           </details>
           *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
- 
+
           github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
@@ -97,9 +97,9 @@ jobs:
         terraform apply  \
           -auto-approve  \
           -input=false \
-          -var extract_image_digest=${{steps.get_image_digest.outputs.extract_image_digest}}  \
-          -var transform_image_digest=${{steps.get_image_digest.outputs.transform_image_digest}}  \
-          -var load_image_digest=${{steps.get_image_digest.outputs.load_image_digest}}  \
+          -var extract_image_digest=${{steps.get_image_digests.outputs.extract_image_digest}}  \
+          -var transform_image_digest=${{steps.get_image_digests.outputs.transform_image_digest}}  \
+          -var load_image_digest=${{steps.get_image_digests.outputs.load_image_digest}}  \
           -var credentials=$GOOGLE_APPLICATION_CREDENTIALS  \
           -var reddit_client_id=${{secrets.REDDIT_CLIENT_ID}}  \
           -var reddit_client_secret=${{secrets.REDDIT_CLIENT_SECRET}}  \

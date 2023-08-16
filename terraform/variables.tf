@@ -35,18 +35,15 @@ variable "load_image_digest" {
 }
 
 variable "reddit_client_id" {
-  type    = string
-  default = "w4YVv8aziZ7DgUQDjAooWQ"
+  type = string
 }
 
 variable "reddit_client_secret" {
-  type    = string
-  default = "4r5ZL-Z2N08taBxS5E8MCs3LXkjphQ"
+  type = string
 }
 
 variable "huggingface_token" {
-  type    = string
-  default = "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"
+  type = string
 }
 
 variable "subreddits" {

@@ -1,14 +1,14 @@
-name: 'Build Docker Images'
+name: "Build Docker Images"
 
 on:
   workflow_run:
     workflows: ["Run Tests"]
-    types: 
+    types:
       - completed
 
 jobs:
   build:
-    name: 'Build Docker Images'
+    name: "Build Docker Images"
     runs-on: ubuntu-latest
     environment: ${GITHUB_REF##*/}
 
