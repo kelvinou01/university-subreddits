@@ -40,6 +40,14 @@ resource "google_cloud_run_v2_service" "extract" {
         name  = "GCS_TRANSFORMED_BUCKET_NAME"
         value = google_storage_bucket.transformed_data_bucket.name
       }
+      env {
+        name  = "BIGQUERY_DATASET_ID"
+        value = google_bigquery_dataset.subreddit_metrics.dataset_id
+      }
+      env {
+        name  = "BIGQUERY_TABLE_ID"
+        value = google_bigquery_table.subreddit_metrics.table_id
+      }
     }
     service_account = google_service_account.etl.email
   }
@@ -95,6 +103,14 @@ resource "google_cloud_run_v2_service" "transform" {
         name  = "GCS_TRANSFORMED_BUCKET_NAME"
         value = google_storage_bucket.transformed_data_bucket.name
       }
+      env {
+        name  = "BIGQUERY_DATASET_ID"
+        value = google_bigquery_dataset.subreddit_metrics.dataset_id
+      }
+      env {
+        name  = "BIGQUERY_TABLE_ID"
+        value = google_bigquery_table.subreddit_metrics.table_id
+      }
     }
     service_account = google_service_account.etl.email
   }
@@ -149,6 +165,14 @@ resource "google_cloud_run_v2_service" "load" {
       env {
         name  = "GCS_TRANSFORMED_BUCKET_NAME"
         value = google_storage_bucket.transformed_data_bucket.name
+      }
+      env {
+        name  = "BIGQUERY_DATASET_ID"
+        value = google_bigquery_dataset.subreddit_metrics.dataset_id
+      }
+      env {
+        name  = "BIGQUERY_TABLE_ID"
+        value = google_bigquery_table.subreddit_metrics.table_id
       }
     }
     service_account = google_service_account.etl.email

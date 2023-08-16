@@ -1,10 +1,16 @@
 name: 'Terraform Apply'
 
 on:
-  workflow_run:
-    workflows: ["Build Docker Images"]
-    types:
-      - completed
+  workflow_call:
+    secrets:
+      GOOGLE_APPLICATION_CREDENTIALS:
+        required: true
+      REDDIT_CLIENT_ID:
+        required: true
+      REDDIT_CLIENT_SECRET:
+        required: true
+      HUGGINGFACE_TOKEN:
+        required: true
 
 jobs:
   terraform:
@@ -18,9 +24,6 @@ jobs:
         working-directory: ./terraform
 
     steps:
-    - name: "Terminate if building images failed"
-      if: ${{ github.event.workflow_run.conclusion != 'success' }}
-      run: exit 1
 
     - name: Checkout
       uses: actions/checkout@v3

@@ -1,0 +1,23 @@
+
+name: "On Push"
+
+on:
+  push:
+    branches: [ "prod", "dev" ]
+
+jobs:
+  call-run-tests:
+    uses: ./.github/workflows/test.yml
+  call-build-images:
+    uses: ./.github/workflows/build_images.yml
+    secrets:
+      GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+    needs: call-run-tests
+  call-terraform:
+    uses: ./.github/workflows/terraform.yml
+    secrets:
+      GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+      REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
+      REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
+      HUGGINGFACE_TOKEN: ${{ secrets.HUGGINGFACE_TOKEN }}
+    needs: call-build-images

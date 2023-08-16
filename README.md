@@ -12,7 +12,7 @@ Interestingly, this project also yields a world ranking of universities based on
 
 !["Architecture"](images/architecture.drawio.png)
 
-All infrastructure is hosted on Google Cloud Platform and managed via Terraform.
+All infrastructure is hosted on Google Cloud Platform and managed via Terraform. The `dev` and `prod` branches each have their own separate sets of infrastructure, which are deployed automatically upon passing CI/CD.
 
 - Idempotent ETL scripts are Python 3.11 docker containers running on Cloud Run. Backfilling can be triggered by sending requests to the extract container.
 
