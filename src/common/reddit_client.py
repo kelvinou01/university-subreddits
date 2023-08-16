@@ -40,10 +40,10 @@ class RedditClient(AbstractRedditClient):
     ) -> list[dict]:
         """Removes submissions not made on date"""
         return [
-            submission for submission in submissions
+            submission
+            for submission in submissions
             if datetime.utcfromtimestamp(submission["created_utc"]).date() == date
         ]
-
 
     def fetch_submissions_made_on_date(self, subreddit: str, date: Date) -> list[dict]:
         posts_made_on_date = []

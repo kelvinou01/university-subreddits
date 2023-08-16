@@ -102,10 +102,10 @@ def parse_and_check_date(input_date: str) -> Date:
     date = datetime.strptime(input_date, "%d/%m/%Y").date()
 
     today = datetime.now().date()
-    more_than_a_month_ago = (today - date).days > 30
-    if more_than_a_month_ago:
+    more_than_ten_days_ago = (today - date).days > 10
+    if more_than_ten_days_ago:
         raise ValueError(
-            "Use extract_backfill.py to extract posts made more than a month ago.",
+            "Cannot extract for dates made more than 10 days ago. Data loss may occur.",
         )
 
     return date

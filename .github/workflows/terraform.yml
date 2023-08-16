@@ -16,7 +16,7 @@ jobs:
   terraform:
     name: 'Terraform'
     runs-on: ubuntu-latest
-    environment: ${GITHUB_REF##*/}
+    environment: ${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
 
     defaults:
       run:
