@@ -38,37 +38,12 @@ class RedditClient(AbstractRedditClient):
         submissions: list[dict],
         date: Date,
     ) -> list[dict]:
-        """Trims the post list from the front and back.
-        Assumes that `submissions` is sorted in descending order of `created_utc`
-        """
-        if len(submissions) == 0:
-            return []
+        """Removes submissions not made on date"""
+        return [
+            submission for submission in submissions
+            if datetime.utcfromtimestamp(submission["created_utc"]).date() == date
+        ]
 
-        latest_submission_date = datetime.utcfromtimestamp(submissions[0]["created_utc"]).date()
-        oldest_submission_date = datetime.utcfromtimestamp(submissions[-1]["created_utc"]).date()
-        no_submissions_made_on_date = (date > latest_submission_date) or (oldest_submission_date > date)
-        if no_submissions_made_on_date:
-            return []
-
-        for start in range(len(submissions)):
-            created_datetime = datetime.utcfromtimestamp(
-                submissions[start]["created_utc"],
-            )
-            should_remove_post = created_datetime.date() > date
-            if not should_remove_post:
-                submissions = submissions[start:]
-                break
-
-        for end in range(len(submissions) - 1, -1, -1):
-            created_datetime = datetime.utcfromtimestamp(
-                submissions[end]["created_utc"],
-            )
-            should_remove_post = created_datetime.date() < date
-            if not should_remove_post:
-                submissions = submissions[: end + 1]
-                break
-
-        return submissions
 
     def fetch_submissions_made_on_date(self, subreddit: str, date: Date) -> list[dict]:
         posts_made_on_date = []
@@ -118,4 +93,5 @@ class RedditClient(AbstractRedditClient):
             posts_made_on_date,
             date,
         )
+        print(len(posts_made_on_date))
         return posts_made_on_date
